@@ -41,14 +41,17 @@ class Hero:
 
     def move(self, dx, dy):
         x, y = self.coords
+        v = self.v
+        if dy and dx:
+            v = self.v * 4 / 6
         if dy == "w":
-            y -= self.v / FPS
+            y -= v / FPS
         elif dy == "s":
-            y += self.v / FPS
+            y += v / FPS
         if dx == "a":
-            x -= self.v / FPS
+            x -= v / FPS
         elif dx == "d":
-            x += self.v / FPS
+            x += v / FPS
         self.coords = x, y
 
 
@@ -88,31 +91,23 @@ if __name__ == '__main__':
                     y = random.randint(10, HEIGHT - 10)
                     x = 10
                 enemy_list.append(Enemy((x, y)))
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
-                    if direction_x:
-                        direction_x = ""
-                    else:
-                        direction_x = "a"
-                if event.key == pygame.K_d:
-                    if direction_x:
-                        direction_x = ""
-                    else:
-                        direction_x = "d"
-                if event.key == pygame.K_w:
-                    if direction_y:
-                        direction_y = ""
-                    else:
-                        direction_y = "w"
-                if event.key == pygame.K_s:
-                    if direction_y:
-                        direction_y = ""
-                    else:
-                        direction_y = "s"
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_a or event.key == pygame.K_d:
+            key_events = pygame.key.get_pressed()
+            if key_events:
+                if key_events[pygame.K_a] and key_events[pygame.K_d]:
                     direction_x = ""
-                if event.key == pygame.K_w or event.key == pygame.K_s:
+                elif key_events[pygame.K_a]:
+                    direction_x = "a"
+                elif key_events[pygame.K_d]:
+                    direction_x = "d"
+                else:
+                    direction_x = ""
+                if key_events[pygame.K_w] and key_events[pygame.K_s]:
+                    direction_y = ""
+                elif key_events[pygame.K_w]:
+                    direction_y = "w"
+                elif key_events[pygame.K_s]:
+                    direction_y = "s"
+                else:
                     direction_y = ""
 
         main_hero.move(direction_x, direction_y)
