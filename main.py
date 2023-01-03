@@ -10,6 +10,19 @@ HEIGHT = 800
 FPS = 60
 
 
+class Bullet:
+    def __init__(self):
+        self.is_died = False
+        self.coords = WIDTH // 2, HEIGHT // 2
+        self.color = WHITE
+        self.size = 10
+        self.v = 100
+
+
+class Weapon:
+    pass
+
+
 class Enemy:
     def __init__(self, coords):
         self.is_died = False
@@ -18,9 +31,9 @@ class Enemy:
         self.color = RED
         self.size = 10
 
-    def move(self, mouse_coords):
+    def move(self, player_coords):
         x, y = self.coords
-        xm, ym = mouse_coords
+        xm, ym = player_coords
         k = ((x - xm) ** 2 + (y - ym) ** 2) ** 0.5
         vx = self.v * (xm - x) / k
         x += vx / FPS
@@ -37,13 +50,13 @@ class Hero:
         self.coords = WIDTH // 2, HEIGHT // 2
         self.color = WHITE
         self.size = 10
-        self.v = 110
+        self.v = 100
 
     def move(self, dx, dy):
         x, y = self.coords
         v = self.v
         if dy and dx:
-            v = self.v * 4 / 6
+            v = (self.v ** 2 / 2) ** 0.5
         if dy == "w":
             y -= v / FPS
         elif dy == "s":
