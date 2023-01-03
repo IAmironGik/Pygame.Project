@@ -15,7 +15,7 @@ class Bullet:
         self.is_died = False
         self.coords = WIDTH // 2, HEIGHT // 2
         self.color = WHITE
-        self.size = 10
+        self.size = 3
         self.v = 100
 
 
