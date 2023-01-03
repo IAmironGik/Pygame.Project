@@ -10,18 +10,6 @@ HEIGHT = 800
 FPS = 60
 
 
-class Bullet:
-    def __init__(self):
-        self.is_died = False
-        self.coords = WIDTH // 2, HEIGHT // 2
-        self.color = WHITE
-        self.size = 10
-        self.v = 100
-
-
-class Weapon:
-    pass
-
 
 class Enemy:
     def __init__(self, coords):
