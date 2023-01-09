@@ -2,7 +2,6 @@ import math
 import random
 import os
 import sys
-
 import pygame
 
 
@@ -29,6 +28,8 @@ RED = "#FF0000"
 WIDTH = 1200
 HEIGHT = 800
 FPS = 60
+GRAY = (150, 150, 150)
+bullet_list = []
 
 
 class Bullet:
@@ -117,7 +118,49 @@ class Hero:
         self.coords = x, y
 
 
-if __name__ == '__main__':
+def render(screen, font, number, list_points):
+    for i in list_points:
+        if number == i[5]:
+            screen.blit(font.render(i[2], False, i[4]), (i[0], i[1]))
+        else:
+            screen.blit(font.render(i[2], False, i[3]), (i[0], i[1]))
+
+
+def menu_stop(screen):
+    pygame.mixer.music.pause()
+    screen.fill(BLACK)
+    pause = True
+    font_menu = pygame.font.Font(None, 50)
+    list_points = [(850, 600, 'Продолжить', RED, GRAY, 1),
+                   (250, 600, 'Выйти в меню', RED, GRAY, 0)]
+    point = 0
+    while pause:
+        pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
+        x, y = pygame.mouse.get_pos()
+        for i in list_points:
+            if x > i[0] and x < (i[0] + 150) and y > i[1] and y < (i[1] + 50):
+                point = i[5]
+        render(screen, font_menu, point, list_points)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    if point > 0:
+                        point -= 1
+                if event.key == pygame.K_RIGHT:
+                    if point < len(list_points) - 1:
+                        point += 1
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                pygame.mixer.music.unpause()
+                if point == 0:
+                    return True
+                elif point == 1:
+                    return False
+        pygame.display.flip()
+
+
+def main():
     pygame.init()
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -130,8 +173,6 @@ if __name__ == '__main__':
     pygame.time.set_timer(enemy_upgrade_timer, 50000)
 
     enemy_list = []
-    bullet_list = []
-
     main_hero = Hero(130)
     mouse_coord = (0, 0)
 
@@ -147,8 +188,12 @@ if __name__ == '__main__':
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if menu_stop(screen):
+                        running = False
+                        break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 bullet_list.append(Bullet(event.pos, main_hero.coords, 0))
 
@@ -170,7 +215,6 @@ if __name__ == '__main__':
                     y = random.randint(10, HEIGHT - 10)
                     x = 10
                 enemy_list.append(Enemy((x, y), enemy_health, enemy_speed))
-
             key_events = pygame.key.get_pressed()
 
             if key_events:
@@ -213,4 +257,3 @@ if __name__ == '__main__':
 
         pygame.display.flip()
         clock.tick(FPS)
-    pygame.quit()
