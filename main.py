@@ -119,16 +119,9 @@ class Hero(pygame.sprite.Sprite):
         v = self.v
         if dy and dx:
             v = (self.v ** 2 / 2) ** 0.5
-        if dy == "w":
-            y -= v / FPS
-        elif dy == "s":
-            y += v / FPS
-        if dx == "a":
-            x -= v / FPS
-        elif dx == "d":
-            x += v / FPS
+        y += (v / FPS) * dy
+        x += (v / FPS) * dx
 
-        self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
@@ -161,15 +154,19 @@ def menu_stop(screen):
         heart = pygame.image.load('data/сердце.png')
         image1 = pygame.transform.scale(heart, (50, 50))
         screen.blit(image1, (700, 100))
+
         weap = pygame.image.load('data/дробовик.png')
         image2 = pygame.transform.scale(weap, (50, 50))
         screen.blit(image2, (900, 300))
+
         damage = pygame.image.load('data/урон.png')
         image3 = pygame.transform.scale(damage, (50, 50))
         screen.blit(image3, (720, 200))
+
         speed = pygame.image.load('data/перо.png')
         image4 = pygame.transform.scale(speed, (50, 50))
         screen.blit(image4, (900, 400))
+
         text_upgtate_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
         screen.blit(text_upgtate_1, (80, 100))
         text_upgtate_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
@@ -265,22 +262,18 @@ def main_game():
 
             key_events = pygame.key.get_pressed()
             if key_events:
-                if key_events[pygame.K_a] and key_events[pygame.K_d]:
-                    direction_x = ""
+                if key_events[pygame.K_a] == key_events[pygame.K_d]:
+                    direction_x = 0
                 elif key_events[pygame.K_a]:
-                    direction_x = "a"
+                    direction_x = -1
                 elif key_events[pygame.K_d]:
-                    direction_x = "d"
-                else:
-                    direction_x = ""
-                if key_events[pygame.K_w] and key_events[pygame.K_s]:
-                    direction_y = ""
+                    direction_x = 1
+                if key_events[pygame.K_w] == key_events[pygame.K_s]:
+                    direction_y = 0
                 elif key_events[pygame.K_w]:
-                    direction_y = "w"
+                    direction_y = -1
                 elif key_events[pygame.K_s]:
-                    direction_y = "s"
-                else:
-                    direction_y = ""
+                    direction_y = 1
 
         main_hero.move(direction_x, direction_y)
         all_sprites.draw(screen)
