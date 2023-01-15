@@ -150,8 +150,8 @@ def menu_stop(screen):
                    (250, 600, 'Выйти в меню', RED, GRAY, 4),
                    (600, 100, '+хп', RED, GRAY, 0),
                    (600, 200, '+урон', RED, GRAY, 1),
-                   (600, 300, 'Тройной выстрел', RED, GRAY, 2),
-                   (600, 400, '-скорость врагов', RED, GRAY, 3)]
+                   (600, 300, 'тройной выстрел', RED, GRAY, 2),
+                   (600, 400, 'замедлить врагов', RED, GRAY, 3)]
 
     point = 0
     while pause:
@@ -159,7 +159,7 @@ def menu_stop(screen):
         x, y = pygame.mouse.get_pos()
         text_upgtate_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
         screen.blit(text_upgtate_1, (80, 100))
-        text_upgtate_2 = font_menu.render("Непостоянные улучшения:", False, (255, 0, 0))
+        text_upgtate_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
         screen.blit(text_upgtate_2, (80, 300))
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
