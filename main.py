@@ -15,6 +15,8 @@ FPS = 60
 GRAY = (150, 150, 150)
 souls = 0
 hero_health = 0
+get_damage_cooldown = 1000
+previous_getting = 0
 bulls_damage = 0
 bullet_list = []
 enemy_list = []
@@ -113,9 +115,23 @@ class Hero(pygame.sprite.Sprite):
         self.coords = WIDTH // 2, HEIGHT // 2
         self.rect.x = WIDTH // 2
         self.rect.y = HEIGHT // 2
+        self.is_died = False
+
+        self.mask = pygame.mask.from_surface(self.image)
 
         self.health = health
         self.v = speed
+
+    def update(self, *args):
+        global previous_getting
+        for enemy in enemy_list:
+            collide_with = pygame.sprite.collide_mask(self, enemy)
+            if collide_with:
+                if pygame.time.get_ticks() - previous_getting > get_damage_cooldown:
+                    self.health -= 1
+                    if self.health <= 0:
+                        self.is_died = True
+                    previous_getting = pygame.time.get_ticks()
 
     def move(self, dx, dy):
         x, y = self.coords
@@ -176,20 +192,20 @@ def menu_stop(screen, hero):
                    (600, 400, 'замедлить врагов', RED, GRAY, 3)]
 
     point = -1
-    heart = pygame.image.load('data/сердце.png')
+    heart = pygame.image.load('data/store_icons/сердце.png')
     image1 = pygame.transform.scale(heart, (50, 50))
 
-    weap = pygame.image.load('data/дробовик.png')
+    weap = pygame.image.load('data/store_icons/дробовик.png')
     image2 = pygame.transform.scale(weap, (50, 50))
 
-    damage = pygame.image.load('data/урон.png')
+    damage = pygame.image.load('data/store_icons/урон.png')
     image3 = pygame.transform.scale(damage, (50, 50))
 
-    speed = pygame.image.load('data/перо.png')
+    speed = pygame.image.load('data/store_icons/перо.png')
     image4 = pygame.transform.scale(speed, (50, 50))
 
-    text_upgtate_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
-    text_upgtate_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
+    text_upgrade_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
+    text_upgrade_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
 
     while pause:
         draw_text(screen, str(souls), 18, WIDTH / 2, 10)
@@ -201,8 +217,8 @@ def menu_stop(screen, hero):
         screen.blit(image3, (720, 200))
         screen.blit(image4, (900, 400))
 
-        screen.blit(text_upgtate_1, (80, 100))
-        screen.blit(text_upgtate_2, (80, 300))
+        screen.blit(text_upgrade_1, (80, 100))
+        screen.blit(text_upgrade_2, (80, 300))
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                 point = i[5]
@@ -240,15 +256,15 @@ def menu_stop(screen, hero):
 def draw_health_bar(surf, max_health, health):
     if health < 0:
         health = 0
-    fill = (health / max_health) * max_health * 30
-    outline_rect = pygame.Rect(5, 5, max_health * 30, 20)
+    fill = (health / max_health) * max_health * 50
+    outline_rect = pygame.Rect(5, 5, max_health * 50, 20)
     fill_rect = pygame.Rect(5, 5, fill, 20)
-    pygame.draw.rect(surf, GRAY, fill_rect)
+    pygame.draw.rect(surf, "#FF1010", fill_rect)
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 
-def main_game():
-    global bullet_list, enemy_list, souls, hero_health, bulls_damage
+def main_game(level, hero):
+    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -262,9 +278,8 @@ def main_game():
 
     bulls_damage = 10
     attack_cooldown = 250
-    get_damage_cooldown = 1000
-    previous_getting = 0
     previous_attack = 0
+    previous_getting = 0
 
     enemy_upgrade_timer = pygame.USEREVENT + 2
     pygame.time.set_timer(enemy_upgrade_timer, 50000)
@@ -272,7 +287,7 @@ def main_game():
     souls = 0
     enemy_list = []
     hero_health = 5
-    main_hero = Hero(all_sprites, 150, "Лэйхо.png", hero_health)
+    main_hero = Hero(all_sprites, 150, f"{hero}.png", hero_health)
 
     killed_enemy = 0
     enemy_health = 30
@@ -339,16 +354,10 @@ def main_game():
         draw_health_bar(screen, hero_health, main_hero.health)
         draw_text(screen, str(souls), 18, WIDTH / 2, 10)
 
-        collide_with = main_hero.rect.collidelist([i.rect for i in enemy_list])
-        if collide_with != -1:
-            if pygame.time.get_ticks() - previous_getting > get_damage_cooldown:
-                main_hero.health -= 1
-                if main_hero.health <= 0:
-                    break
-                previous_getting = pygame.time.get_ticks()
-
         all_sprites.draw(screen)
         all_sprites.update(main_hero)
+        if main_hero.is_died:
+            break
 
         for index, bullet in enumerate(bullet_list):
             pygame.draw.circle(screen, bullet.color, bullet.coords, bullet.size)
@@ -360,8 +369,8 @@ def main_game():
             if enemy.is_died:
                 for i in range(random.randint(1, 3)):
                     x, y = enemy.coords
-                    x += random.randint(-5, 5)
-                    y += random.randint(-5, 5)
+                    x += random.randint(-20, 20)
+                    y += random.randint(-20, 20)
                     SoulsDrop(all_sprites, x, y)
                 enemy.kill()
                 enemy_list.remove(enemy)
