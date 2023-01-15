@@ -34,7 +34,7 @@ def load_image(name, colorkey=None):
 
 
 class Bullet:
-    def __init__(self, mouse_coords, hero_pos, spread):
+    def __init__(self, mouse_coords, hero_pos, spread=0):
         self.is_died = False
         self.damage = 10
         self.color = WHITE
@@ -96,8 +96,6 @@ class Enemy(pygame.sprite.Sprite):
         y += vy / FPS
 
         self.coords = x, y
-
-        self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
@@ -108,6 +106,7 @@ class Hero(pygame.sprite.Sprite):
 
         self.image = load_image(image)
         self.rect = self.image.get_rect()
+        self.coords = WIDTH // 2, HEIGHT // 2
         self.rect.x = WIDTH // 2
         self.rect.y = HEIGHT // 2
 
@@ -115,13 +114,14 @@ class Hero(pygame.sprite.Sprite):
         self.v = speed
 
     def move(self, dx, dy):
-        x, y = self.rect.x, self.rect.y
+        x, y = self.coords
         v = self.v
         if dy and dx:
             v = (self.v ** 2 / 2) ** 0.5
         y += (v / FPS) * dy
         x += (v / FPS) * dx
 
+        self.coords = x, y
         self.rect.x = x
         self.rect.y = y
 
@@ -239,7 +239,7 @@ def main_game():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
-                                                      main_hero.rect.y + main_hero.rect.h // 2), 0))
+                                                      main_hero.rect.y + main_hero.rect.h // 2)))
 
             if event.type == enemy_upgrade_timer:
                 pygame.time.set_timer(enemy_spawn_timer, 500)
