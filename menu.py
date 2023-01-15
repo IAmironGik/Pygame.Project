@@ -1,9 +1,10 @@
-import pygame
 import sys
+
+import pygame
 import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
-from main import main
+from main import main_game
 
 BLACK = "#000000"
 WHITE = "#FFFFFF"
@@ -77,6 +78,9 @@ class Menu:
             for i in self.list_point_menu_volume:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
+                    break
+                else:
+                    point = -1
             self.render(screen, self.font_menu, point, self.list_point_menu_volume)
             for event in events:
                 if event.type == pygame.QUIT:
@@ -89,15 +93,15 @@ class Menu:
                         if point < len(self.list_point_menu_volume) - 1:
                             point += 1
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if point == 0:
-                        pygame.mixer.music.load('data/menu_music.mp3')
-                        pygame.mixer.music.set_volume(self.menu_vol)
-                        pygame.mixer.music.play(-1)
-                        play_game = False
-                        run_volume = False
-                        screen.fill(BLACK)
-                    else:
-                        if not self.music == f'data/game_music_{point}.mp3':
+                    if point >= 0:
+                        if point == 0:
+                            pygame.mixer.music.load('data/menu_music.mp3')
+                            pygame.mixer.music.set_volume(self.menu_vol)
+                            pygame.mixer.music.play(-1)
+                            play_game = False
+                            run_volume = False
+                            screen.fill(BLACK)
+                        else:
                             self.music = f'data/game_music_{point}.mp3'
                             pygame.mixer.music.load(self.music)
                             pygame.mixer.music.set_volume(self.game_volume)
@@ -133,6 +137,9 @@ class Menu:
             for i in self.list_point_menu_hero:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
+                    break
+                else:
+                    point = -1
             self.render(screen, self.font_menu, point, self.list_point_menu_hero)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -168,6 +175,9 @@ class Menu:
             for i in self.list_point_menu_level:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
+                    break
+                else:
+                    point = -1
             self.render(screen, self.font_menu, point, self.list_point_menu_level)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -194,7 +204,7 @@ class Menu:
                             self.level = '3'
                         elif point == 3:
                             self.level = '4'
-                        main()
+                        main_game()
                         pygame.mixer.music.load('data/menu_music.mp3')
                         pygame.mixer.music.set_volume(self.menu_vol)
                         pygame.mixer.music.play()
@@ -214,6 +224,9 @@ class Menu:
             for i in self.list_point_main_menu:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
+                    break
+                else:
+                    point = -1
             self.render(screen, self.font_menu, point, self.list_point_main_menu)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
