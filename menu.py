@@ -69,6 +69,11 @@ class Menu:
             text_choose = self.font_menu.render("Выберите мелодию для проигрывания в игре", False, (255, 0, 0))
             screen.blit(text_choose, (100, 300))
             x, y = pygame.mouse.get_pos()
+            self.menu_vol = slider_menu.getValue() / 100
+            self.game_volume = slider_game.getValue() / 100
+            box_menu.setText(slider_menu.getValue())
+            box_game.setText(slider_game.getValue())
+            pygame_widgets.update(events)
             for i in self.list_point_menu_volume:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
@@ -86,31 +91,25 @@ class Menu:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if point == 0:
                         pygame.mixer.music.load('data/menu_music.mp3')
-                        pygame.mixer.music.set_volume(slider_menu.getValue() / 100)
+                        pygame.mixer.music.set_volume(self.menu_vol)
                         pygame.mixer.music.play(-1)
+                        play_game = False
                         run_volume = False
                         screen.fill(BLACK)
                     else:
                         if not self.music == f'data/game_music_{point}.mp3':
                             self.music = f'data/game_music_{point}.mp3'
                             pygame.mixer.music.load(self.music)
-                            pygame.mixer.music.set_volume(slider_game.getValue() / 100)
+                            pygame.mixer.music.set_volume(self.game_volume)
                             pygame.mixer.music.play(-1, 1)
                             play_game = True
-            self.menu_vol = slider_menu.getValue() / 100
-            self.game_volume = slider_game.getValue() / 100
             if play_game:
                 pygame.mixer.music.set_volume(self.game_volume)
             else:
                 pygame.mixer.music.set_volume(self.menu_vol)
 
-            box_menu.setText(slider_menu.getValue())
-            box_game.setText(slider_game.getValue())
-
-            pygame_widgets.update(events)
             pygame.display.update()
             pygame.display.flip()
-
 
         slider_menu.hide()
         slider_game.hide()
@@ -121,7 +120,7 @@ class Menu:
         screen.fill(BLACK)
         run_hero = True
         self.hero = ''
-        point = 0
+        point = -1
         while run_hero:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
             x, y = pygame.mouse.get_pos()
@@ -162,7 +161,7 @@ class Menu:
         screen.fill(BLACK)
         run_level = True
         self.level = ''
-        point = 0
+        point = -1
         while run_level:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
             x, y = pygame.mouse.get_pos()
@@ -205,7 +204,7 @@ class Menu:
     def menu(self):
         run = True
         self.font_menu = pygame.font.Font(None, 50)
-        point = 0
+        point = -1
         pygame.mixer.music.load('data/menu_music.mp3')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.5)

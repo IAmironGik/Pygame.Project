@@ -138,10 +138,23 @@ def menu_stop(screen):
                    (600, 300, 'Тройной выстрел', RED, GRAY, 2),
                    (600, 400, '-скорость врагов', RED, GRAY, 3)]
 
-    point = 0
+    point = -1
     while pause:
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
         x, y = pygame.mouse.get_pos()
+
+        heart = pygame.image.load('data/сердце.png')
+        image1 = pygame.transform.scale(heart, (50, 50))
+        screen.blit(image1, (700, 100))
+        weap = pygame.image.load('data/дробовик.png')
+        image2 = pygame.transform.scale(weap, (50, 50))
+        screen.blit(image2, (900, 300))
+        damage = pygame.image.load('data/урон.png')
+        image3 = pygame.transform.scale(damage, (50, 50))
+        screen.blit(image3, (720, 200))
+        speed = pygame.image.load('data/перо.png')
+        image4 = pygame.transform.scale(speed, (50, 50))
+        screen.blit(image4, (900, 400))
         text_upgtate_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
         screen.blit(text_upgtate_1, (80, 100))
         text_upgtate_2 = font_menu.render("Непостоянные улучшения:", False, (255, 0, 0))
