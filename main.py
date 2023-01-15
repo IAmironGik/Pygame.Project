@@ -177,6 +177,9 @@ def menu_stop(screen):
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                 point = i[5]
+                break
+            else:
+                point = -1
         render(screen, font_menu, point, list_points)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -189,10 +192,11 @@ def menu_stop(screen):
                     if point < len(list_points) - 1:
                         point += 1
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                pygame.mixer.music.unpause()
-                if point == 0:
+                if point == 4:
+                    pygame.mixer.music.unpause()
                     return True
-                elif point == 1:
+                elif point == 5:
+                    pygame.mixer.music.unpause()
                     return False
         pygame.display.flip()
 
