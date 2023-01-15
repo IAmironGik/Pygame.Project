@@ -152,6 +152,7 @@ def menu_stop(screen):
                    (600, 200, '+урон', RED, GRAY, 1),
                    (600, 300, 'Тройной выстрел', RED, GRAY, 2),
                    (600, 400, '-скорость врагов', RED, GRAY, 3)]
+
     point = 0
     while pause:
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
