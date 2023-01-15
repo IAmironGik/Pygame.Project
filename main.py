@@ -13,7 +13,11 @@ WIDTH = 1200
 HEIGHT = 800
 FPS = 60
 GRAY = (150, 150, 150)
+souls = 0
+hero_health = 0
+bulls_damage = 0
 bullet_list = []
+enemy_list = []
 
 
 def load_image(name, colorkey=None):
@@ -34,9 +38,9 @@ def load_image(name, colorkey=None):
 
 
 class Bullet:
-    def __init__(self, mouse_coords, hero_pos, spread=0):
+    def __init__(self, mouse_coords, hero_pos, damage, spread=0):
         self.is_died = False
-        self.damage = 10
+        self.damage = damage
         self.color = WHITE
         self.coords = hero_pos
         self.size = 5
@@ -63,7 +67,6 @@ class Bullet:
 
 
 class Enemy(pygame.sprite.Sprite):
-
     def __init__(self, group, coords, health, speed):
         super().__init__(group)
 
@@ -77,7 +80,8 @@ class Enemy(pygame.sprite.Sprite):
         self.v = speed
         self.health = health
 
-    def update(self):
+    def update(self, hero):
+        self.move((hero.rect.x, hero.rect.y))
         collide_with = self.rect.collidelist([i.rect for i in bullet_list])
         if collide_with != -1:
             bull = bullet_list[collide_with]
@@ -126,6 +130,31 @@ class Hero(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+class SoulsDrop(pygame.sprite.Sprite):
+    def __init__(self, group, x, y):
+        super().__init__(group)
+        self.image = load_image("soul.png")
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, hero):
+        if self.rect.colliderect(hero.rect):
+            global souls
+            souls += 1
+            self.kill()
+
+
+soul_bar_font = pygame.font.match_font('arial')
+
+
+def draw_text(surf, text, size, x, y):
+    text_surface = pygame.font.Font(soul_bar_font, size).render(text, True, WHITE)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
+
+
 def render(screen, font, number, list_points):
     for i in list_points:
         if number == i[5]:
@@ -134,7 +163,7 @@ def render(screen, font, number, list_points):
             screen.blit(font.render(i[2], False, i[3]), (i[0], i[1]))
 
 
-def menu_stop(screen):
+def menu_stop(screen, hero):
     pygame.mixer.music.pause()
     screen.fill(BLACK)
     pause = True
@@ -147,29 +176,32 @@ def menu_stop(screen):
                    (600, 400, 'замедлить врагов', RED, GRAY, 3)]
 
     point = -1
+    heart = pygame.image.load('data/сердце.png')
+    image1 = pygame.transform.scale(heart, (50, 50))
+
+    weap = pygame.image.load('data/дробовик.png')
+    image2 = pygame.transform.scale(weap, (50, 50))
+
+    damage = pygame.image.load('data/урон.png')
+    image3 = pygame.transform.scale(damage, (50, 50))
+
+    speed = pygame.image.load('data/перо.png')
+    image4 = pygame.transform.scale(speed, (50, 50))
+
+    text_upgtate_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
+    text_upgtate_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
+
     while pause:
+        draw_text(screen, str(souls), 18, WIDTH / 2, 10)
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
         x, y = pygame.mouse.get_pos()
 
-        heart = pygame.image.load('data/сердце.png')
-        image1 = pygame.transform.scale(heart, (50, 50))
         screen.blit(image1, (700, 100))
-
-        weap = pygame.image.load('data/дробовик.png')
-        image2 = pygame.transform.scale(weap, (50, 50))
         screen.blit(image2, (900, 300))
-
-        damage = pygame.image.load('data/урон.png')
-        image3 = pygame.transform.scale(damage, (50, 50))
         screen.blit(image3, (720, 200))
-
-        speed = pygame.image.load('data/перо.png')
-        image4 = pygame.transform.scale(speed, (50, 50))
         screen.blit(image4, (900, 400))
 
-        text_upgtate_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
         screen.blit(text_upgtate_1, (80, 100))
-        text_upgtate_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
         screen.blit(text_upgtate_2, (80, 300))
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
@@ -189,7 +221,14 @@ def menu_stop(screen):
                     if point < len(list_points) - 1:
                         point += 1
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if point == 4:
+                if point == 0:
+                    global hero_health
+                    hero.health += 1
+                    hero_health += 1
+                elif point == 1:
+                    global bulls_damage
+                    bulls_damage += 5
+                elif point == 4:
                     pygame.mixer.music.unpause()
                     return True
                 elif point == 5:
@@ -198,8 +237,18 @@ def menu_stop(screen):
         pygame.display.flip()
 
 
+def draw_health_bar(surf, max_health, health):
+    if health < 0:
+        health = 0
+    fill = (health / max_health) * max_health * 30
+    outline_rect = pygame.Rect(5, 5, max_health * 30, 20)
+    fill_rect = pygame.Rect(5, 5, fill, 20)
+    pygame.draw.rect(surf, GRAY, fill_rect)
+    pygame.draw.rect(surf, WHITE, outline_rect, 2)
+
+
 def main_game():
-    global bullet_list
+    global bullet_list, enemy_list, souls, hero_health, bulls_damage
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -211,11 +260,19 @@ def main_game():
     enemy_spawn_timer = pygame.USEREVENT + 1
     pygame.time.set_timer(enemy_spawn_timer, 1000)
 
+    bulls_damage = 10
+    attack_cooldown = 250
+    get_damage_cooldown = 1000
+    previous_getting = 0
+    previous_attack = 0
+
     enemy_upgrade_timer = pygame.USEREVENT + 2
     pygame.time.set_timer(enemy_upgrade_timer, 50000)
 
+    souls = 0
     enemy_list = []
-    main_hero = Hero(all_sprites, 130, "Лэйхо.png", 5)
+    hero_health = 5
+    main_hero = Hero(all_sprites, 150, "Лэйхо.png", hero_health)
 
     killed_enemy = 0
     enemy_health = 30
@@ -233,13 +290,15 @@ def main_game():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    if menu_stop(screen):
+                    if menu_stop(screen, main_hero):
                         running = False
                         break
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
-                                                      main_hero.rect.y + main_hero.rect.h // 2)))
+                if pygame.time.get_ticks() - previous_attack > attack_cooldown:
+                    bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
+                                                          main_hero.rect.y + main_hero.rect.h // 2), bulls_damage))
+                    previous_attack = pygame.time.get_ticks()
 
             if event.type == enemy_upgrade_timer:
                 pygame.time.set_timer(enemy_spawn_timer, 500)
@@ -276,7 +335,20 @@ def main_game():
                     direction_y = 1
 
         main_hero.move(direction_x, direction_y)
+
+        draw_health_bar(screen, hero_health, main_hero.health)
+        draw_text(screen, str(souls), 18, WIDTH / 2, 10)
+
+        collide_with = main_hero.rect.collidelist([i.rect for i in enemy_list])
+        if collide_with != -1:
+            if pygame.time.get_ticks() - previous_getting > get_damage_cooldown:
+                main_hero.health -= 1
+                if main_hero.health <= 0:
+                    break
+                previous_getting = pygame.time.get_ticks()
+
         all_sprites.draw(screen)
+        all_sprites.update(main_hero)
 
         for index, bullet in enumerate(bullet_list):
             pygame.draw.circle(screen, bullet.color, bullet.coords, bullet.size)
@@ -285,10 +357,12 @@ def main_game():
                 bullet_list.pop(index)
 
         for enemy in enemy_list:
-            enemy.move((main_hero.rect.x, main_hero.rect.y))
-
-            enemy.update()
             if enemy.is_died:
+                for i in range(random.randint(1, 3)):
+                    x, y = enemy.coords
+                    x += random.randint(-5, 5)
+                    y += random.randint(-5, 5)
+                    SoulsDrop(all_sprites, x, y)
                 enemy.kill()
                 enemy_list.remove(enemy)
                 killed_enemy += 1
