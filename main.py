@@ -190,9 +190,9 @@ def menu_stop(screen):
                         point += 1
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pygame.mixer.music.unpause()
-                if point == 0:
+                if point == 4:
                     return True
-                elif point == 1:
+                elif point == 5:
                     return False
         pygame.display.flip()
 
