@@ -1,9 +1,10 @@
-import pygame
 import sys
+
+import pygame
 import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
-from main import main
+from main import main_game
 
 BLACK = "#000000"
 WHITE = "#FFFFFF"
@@ -194,7 +195,7 @@ class Menu:
                             self.level = '3'
                         elif point == 3:
                             self.level = '4'
-                        main()
+                        main_game()
                         pygame.mixer.music.load('data/menu_music.mp3')
                         pygame.mixer.music.set_volume(self.menu_vol)
                         pygame.mixer.music.play()
