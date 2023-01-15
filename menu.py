@@ -59,7 +59,6 @@ class Menu:
         run_volume = True
         self.render(screen, self.font_menu, 0, self.list_point_menu_volume)
         point = int(self.music.split('.')[0][-1])
-        print(point)
         play_game = False
         while run_volume:
             events = pygame.event.get()
