@@ -1,7 +1,8 @@
 import math
-import random
 import os
+import random
 import sys
+
 import pygame
 
 
@@ -29,6 +30,7 @@ WIDTH = 1200
 HEIGHT = 800
 FPS = 60
 GRAY = (150, 150, 150)
+all_sprites = pygame.sprite.Group()
 bullet_list = []
 
 
@@ -61,17 +63,20 @@ class Bullet:
         self.rect = pygame.Rect(x, y, 2 * self.size, 2 * self.size)
 
 
-class Enemy:
+class Enemy(pygame.sprite.Sprite):
+
     def __init__(self, coords, health, speed):
+        super().__init__(all_sprites)
+
+        self.image = load_image("Рифжих.png")
+        self.rect = self.image.get_rect()
+        self.coords = coords
+        self.rect.x = coords[0]
+        self.rect.y = coords[1]
+
         self.is_died = False
         self.v = speed
         self.health = health
-        self.coords = coords
-        self.color = RED
-        self.size = 10
-        self.radius = self.size
-        x, y = self.coords
-        self.rect = pygame.Rect(x, y, 2 * self.size, 2 * self.size)
 
     def update(self):
         collide_with = self.rect.collidelist([i.rect for i in bullet_list])
@@ -90,20 +95,28 @@ class Enemy:
         x += vx / FPS
         vy = self.v * (ym - y) / k
         y += vy / FPS
+
         self.coords = x, y
-        self.rect = pygame.Rect(x, y, 2 * self.size, 2 * self.size)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
 
-class Hero:
-    def __init__(self, speed):
-        self.is_died = False
-        self.coords = WIDTH // 2, HEIGHT // 2
-        self.color = WHITE
-        self.size = 10
+class Hero(pygame.sprite.Sprite):
+    def __init__(self, speed, image, health):
+        super().__init__(all_sprites)
+
+        self.image = load_image(image)
+        self.rect = self.image.get_rect()
+        self.rect.x = WIDTH // 2
+        self.rect.y = HEIGHT // 2
+
+        self.health = health
         self.v = speed
 
     def move(self, dx, dy):
-        x, y = self.coords
+        x, y = self.rect.x, self.rect.y
         v = self.v
         if dy and dx:
             v = (self.v ** 2 / 2) ** 0.5
@@ -115,7 +128,10 @@ class Hero:
             x -= v / FPS
         elif dx == "d":
             x += v / FPS
-        self.coords = x, y
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
 
 def render(screen, font, number, list_points):
@@ -138,7 +154,7 @@ def menu_stop(screen):
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
         x, y = pygame.mouse.get_pos()
         for i in list_points:
-            if x > i[0] and x < (i[0] + 150) and y > i[1] and y < (i[1] + 50):
+            if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                 point = i[5]
         render(screen, font_menu, point, list_points)
         for event in pygame.event.get():
@@ -160,8 +176,7 @@ def menu_stop(screen):
         pygame.display.flip()
 
 
-def main():
-    pygame.init()
+def main_game():
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
     clock = pygame.time.Clock()
@@ -173,8 +188,7 @@ def main():
     pygame.time.set_timer(enemy_upgrade_timer, 50000)
 
     enemy_list = []
-    main_hero = Hero(130)
-    mouse_coord = (0, 0)
+    main_hero = Hero(130, "Лэйхо.png", 5)
 
     killed_enemy = 0
     enemy_health = 30
@@ -189,13 +203,16 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if menu_stop(screen):
                         running = False
                         break
+
             if event.type == pygame.MOUSEBUTTONDOWN:
-                bullet_list.append(Bullet(event.pos, main_hero.coords, 0))
+                bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
+                                                      main_hero.rect.y + main_hero.rect.h // 2), 0))
 
             if event.type == enemy_upgrade_timer:
                 pygame.time.set_timer(enemy_spawn_timer, 500)
@@ -215,8 +232,8 @@ def main():
                     y = random.randint(10, HEIGHT - 10)
                     x = 10
                 enemy_list.append(Enemy((x, y), enemy_health, enemy_speed))
-            key_events = pygame.key.get_pressed()
 
+            key_events = pygame.key.get_pressed()
             if key_events:
                 if key_events[pygame.K_a] and key_events[pygame.K_d]:
                     direction_x = ""
@@ -236,7 +253,7 @@ def main():
                     direction_y = ""
 
         main_hero.move(direction_x, direction_y)
-        pygame.draw.circle(screen, main_hero.color, main_hero.coords, main_hero.size)
+        all_sprites.draw(screen)
 
         for index, bullet in enumerate(bullet_list):
             pygame.draw.circle(screen, bullet.color, bullet.coords, bullet.size)
@@ -245,15 +262,13 @@ def main():
                 bullet_list.pop(index)
 
         for enemy in enemy_list:
-            pygame.draw.circle(screen, enemy.color, enemy.coords, enemy.size)
-            enemy.move(main_hero.coords)
+            enemy.move((main_hero.rect.x, main_hero.rect.y))
+
             enemy.update()
             if enemy.is_died:
+                enemy.kill()
                 enemy_list.remove(enemy)
                 killed_enemy += 1
-                # if killed_enemy == 20:
-                #     killed_enemy = 0
-                #     enemy_health += 10
 
         pygame.display.flip()
         clock.tick(FPS)

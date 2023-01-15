@@ -1,9 +1,11 @@
-import pygame
 import sys
+
+import pygame
 import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
-from main import main
+
+from main import main_game
 
 BLACK = "#000000"
 WHITE = "#FFFFFF"
@@ -19,9 +21,10 @@ screen = pygame.display.set_mode(size)
 
 class Menu:
     def __init__(self, list_points):
+        self.font_menu = pygame.font.Font(None, 50)
         self.list_points = list_points
         self.game_volume = 0.5
-        self.music = 'data/game_music_1'
+        self.music = 'data/game_music_1.mp3'
 
     def render(self, screen, font, number):
         for i in self.list_points:
@@ -57,7 +60,7 @@ class Menu:
             screen.blit(text_3, (100, 300))
             x, y = pygame.mouse.get_pos()
             for i in self.list_points:
-                if x > i[0] and x < (i[0] + 150) and y > i[1] and y < (i[1] + 50):
+                if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
             self.render(screen, self.font_menu, point)
             for event in events:
@@ -109,14 +112,14 @@ class Menu:
         while run_hero:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
             x, y = pygame.mouse.get_pos()
-            rif = pygame.image.load('data/Рифжих.jpg')
+            rif = pygame.image.load('data/Рифжих.png')
             image1 = pygame.transform.scale(rif, (200, 200))
             screen.blit(image1, (220, 350))
-            lai = pygame.image.load('data/Лэйхо.jpg')
+            lai = pygame.image.load('data/Лэйхо.png')
             image2 = pygame.transform.scale(lai, (200, 200))
             screen.blit(image2, (800, 350))
             for i in self.list_points:
-                if x > i[0] and x < (i[0] + 150) and y > i[1] and y < (i[1] + 50):
+                if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
             self.render(screen, self.font_menu, point)
             for event in pygame.event.get():
@@ -152,19 +155,21 @@ class Menu:
 
     def menu_level(self):
         screen.fill(BLACK)
-        run_level = True
+
         self.list_points = [(150, 300, 'Уровень 1', RED, GRAY, 0),
                             (850, 300, 'Уровень 2', RED, GRAY, 1),
                             (150, 600, 'Уровень 3', RED, GRAY, 2),
                             (850, 600, 'Уровень 4', RED, GRAY, 3),
                             (500, 650, 'Назад', RED, GRAY, 4)]
-        self.level = ''
+        level = ''
         point = 0
+
+        run_level = True
         while run_level:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
             x, y = pygame.mouse.get_pos()
             for i in self.list_points:
-                if x > i[0] and x < (i[0] + 150) and y > i[1] and y < (i[1] + 50):
+                if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
             self.render(screen, self.font_menu, point)
             for event in pygame.event.get():
@@ -185,14 +190,14 @@ class Menu:
                         pygame.mixer.music.set_volume(self.game_volume)
                         pygame.mixer.music.play(-1, 2)
                         if point == 0:
-                            self.level = '1'
+                            level = '1'
                         elif point == 1:
-                            self.level = '2'
+                            level = '2'
                         elif point == 2:
-                            self.level = '3'
+                            level = '3'
                         elif point == 3:
-                            self.level = '4'
-                        main()
+                            level = '4'
+                        main_game()
                         pygame.mixer.music.load('data/menu_music.mp3')
                         pygame.mixer.music.set_volume(self.menu_vol)
                         pygame.mixer.music.play()
@@ -201,7 +206,6 @@ class Menu:
 
     def menu(self):
         run = True
-        self.font_menu = pygame.font.Font(None, 50)
         point = 0
         pygame.mixer.music.load('data/menu_music.mp3')
         pygame.mixer.music.play(-1)
@@ -210,7 +214,7 @@ class Menu:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
             x, y = pygame.mouse.get_pos()
             for i in self.list_points:
-                if x > i[0] and x < (i[0] + 150) and y > i[1] and y < (i[1] + 50):
+                if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
             self.render(screen, self.font_menu, point)
             for event in pygame.event.get():
@@ -247,10 +251,9 @@ class Menu:
             pygame.display.flip()
 
 
-list_points = [(500, 200, 'Играть', RED, GRAY, 0),
-               (500, 300, 'Магазин', RED, GRAY, 1),
-               (500, 400, 'Настройки', RED, GRAY, 2),
-               (500, 500, 'Правила', RED, GRAY, 3),
-               (500, 600, 'Выход', RED, GRAY, 4)]
-game = Menu(list_points)
+game = Menu([(500, 200, 'Играть', RED, GRAY, 0),
+             (500, 300, 'Магазин', RED, GRAY, 1),
+             (500, 400, 'Настройки', RED, GRAY, 2),
+             (500, 500, 'Правила', RED, GRAY, 3),
+             (500, 600, 'Выход', RED, GRAY, 4)])
 game.menu()
