@@ -477,3 +477,4 @@ def main_game(level, hero):
 
         pygame.display.flip()
         clock.tick(FPS)
+
