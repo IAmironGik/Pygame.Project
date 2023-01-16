@@ -14,6 +14,7 @@ FPS = 60
 GRAY = (150, 150, 150)
 soul_bar_font = pygame.font.match_font('arial')
 souls = 0
+tripled_attack = False
 hero_health = 0
 get_damage_cooldown = 1000
 previous_getting = 0
@@ -41,7 +42,7 @@ def load_image(name, colorkey=None):
 
 
 class Bullet:
-    def __init__(self, mouse_coords, hero_pos, damage, spread=0):
+    def __init__(self, mouse_coords, hero_pos, damage, spread):
         self.is_died = False
         self.damage = damage
         self.color = WHITE
@@ -252,13 +253,20 @@ def menu_stop(screen, hero):
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if point == 0:
                     global hero_health
+
                     hero.health += 1
                     if hero_health < hero.health:
                         hero_health += 1
 
                 elif point == 1:
                     global bulls_damage
+
                     bulls_damage += 5
+
+                elif point == 2:
+                    global tripled_attack
+
+                    tripled_attack = True
 
                 elif point == 4:
                     pygame.mixer.music.unpause()
@@ -276,15 +284,15 @@ def draw_health_bar(surf, max_health, health):
         health = 0
 
     fill = (health / max_health) * max_health * 50
-    outline_rect = pygame.Rect(5, HEIGHT - 30, max_health * 50, 20)
-    fill_rect = pygame.Rect(5, HEIGHT - 30, fill, 20)
+    outline_rect = pygame.Rect(5, 5, max_health * 50, 20)
+    fill_rect = pygame.Rect(5, 5, fill, 20)
 
     pygame.draw.rect(surf, "#FF1010", fill_rect)
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 
 def main_game(level, hero):
-    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting
+    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -333,8 +341,15 @@ def main_game(level, hero):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.time.get_ticks() - previous_attack > attack_cooldown:
                     bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
-                                                          main_hero.rect.y + main_hero.rect.h // 2), bulls_damage))
-
+                                                          main_hero.rect.y + main_hero.rect.h // 2),
+                                              bulls_damage, 0))
+                    if tripled_attack:
+                        bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
+                                                              main_hero.rect.y + main_hero.rect.h // 2),
+                                                  bulls_damage, math.pi / 6))
+                        bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
+                                                              main_hero.rect.y + main_hero.rect.h // 2),
+                                                  bulls_damage, -math.pi / 6))
                     previous_attack = pygame.time.get_ticks()
 
             if event.type == enemy_upgrade_timer:
@@ -376,9 +391,6 @@ def main_game(level, hero):
 
         main_hero.move(direction_x, direction_y)
 
-        draw_health_bar(screen, hero_health, main_hero.health)
-        draw_text(screen, str(souls), 18, WIDTH / 2, 10)
-
         all_sprites.draw(screen)
         all_sprites.update(main_hero)
 
@@ -403,6 +415,9 @@ def main_game(level, hero):
                 enemy.kill()
                 enemy_list.remove(enemy)
                 killed_enemy += 1
+
+        draw_health_bar(screen, hero_health, main_hero.health)
+        draw_text(screen, str(souls), 18, WIDTH / 2, 30)
 
         pygame.display.flip()
         clock.tick(FPS)
