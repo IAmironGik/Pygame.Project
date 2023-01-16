@@ -253,7 +253,8 @@ def menu_stop(screen, hero):
                 if point == 0:
                     global hero_health
                     hero.health += 1
-                    hero_health += 1
+                    if hero_health < hero.health:
+                        hero_health += 1
 
                 elif point == 1:
                     global bulls_damage
