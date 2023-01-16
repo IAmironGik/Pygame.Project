@@ -48,7 +48,7 @@ class Bullet:
         self.color = WHITE
         self.coords = hero_pos
         self.size = 5
-        self.v = 150
+        self.v = 200
 
         x, y = self.coords
         distance_x = mouse_coords[0] - hero_pos[0]
@@ -200,8 +200,8 @@ def menu_stop(screen, hero):
                    (250, 600, 'Выйти в меню', RED, GRAY, 4, 0),
                    (600, 100, '+хп', RED, GRAY, 0, 10),
                    (600, 200, '+урон', RED, GRAY, 1, 20),
-                   (600, 300, 'тройной выстрел', RED, GRAY, 2, 50),
-                   (600, 400, 'замедлить врагов', RED, GRAY, 3, 50)]
+                   (600, 300, 'тройной выстрел', RED, GRAY, 2, 35),
+                   (600, 400, 'замедлить врагов', RED, GRAY, 3, 35)]
 
     point = -1
     heart = pygame.image.load('data/store_icons/сердце.png')
@@ -221,6 +221,7 @@ def menu_stop(screen, hero):
 
     pause = True
     while pause:
+        global souls
         draw_text(screen, str(souls), 18, WIDTH / 2, 10)
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
         x, y = pygame.mouse.get_pos()
@@ -260,21 +261,25 @@ def menu_stop(screen, hero):
                 if point == 0:
                     global hero_health
 
+                    souls -= 10
                     hero.health += 1
                     if hero_health < hero.health:
                         hero_health += 1
 
                 elif point == 1:
+                    souls -= 20
                     global bulls_damage
 
                     bulls_damage += 5
 
                 elif point == 2:
+                    souls -= 35
                     global tripled_attack
 
                     tripled_attack = True
 
                 elif point == 3:
+                    souls -= 35
                     global enemy_slow
 
                     enemy_slow = True
@@ -342,7 +347,7 @@ def main_game(level, hero):
 
     seconds_timer = pygame.USEREVENT + 3
     pygame.time.set_timer(seconds_timer, 1000)
-    minuts, seconds = 6, 0
+    minuts, seconds = 1, 0
     text_time = f'{minuts}:{seconds:02}'
 
     running = True
@@ -361,10 +366,13 @@ def main_game(level, hero):
                 slow = 0
 
             if event.type == seconds_timer:
+                if not (minuts or seconds):
+                    running = False
+                    break
                 minuts -= (seconds == 0)
                 seconds -= 1
                 seconds %= 60
-                text_time = f'{minuts}:{seconds}'
+                text_time = f'{minuts}:{seconds:02}'
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
