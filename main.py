@@ -7,6 +7,7 @@ import pygame
 BLACK = "#000000"
 WHITE = "#FFFFFF"
 RED = "#FF0000"
+BLUE = (0,250,250)
 WIDTH = 1200
 HEIGHT = 800
 FPS = 60
@@ -192,10 +193,10 @@ def menu_stop(screen, hero):
     font_menu = pygame.font.Font(None, 50)
     list_points = [(800, 600, 'Продолжить', RED, GRAY, 5, 0),
                    (250, 600, 'Выйти в меню', RED, GRAY, 4, 0),
-                   (600, 100, '+хп', RED, GRAY, 0, 10),
-                   (600, 200, '+урон', RED, GRAY, 1, 20),
-                   (600, 300, 'тройной выстрел', RED, GRAY, 2, 50),
-                   (600, 400, 'замедлить врагов', RED, GRAY, 3, 50)]
+                   (600, 100, '+хп', BLUE, GRAY, 0, 10),
+                   (600, 200, '+урон', BLUE, GRAY, 1, 20),
+                   (600, 300, 'тройной выстрел', BLUE, GRAY, 2, 35),
+                   (600, 400, 'замедлить врагов', BLUE, GRAY, 3, 35)]
 
     point = -1
     heart = pygame.image.load('data/store_icons/сердце.png')
@@ -212,6 +213,15 @@ def menu_stop(screen, hero):
 
     text_upgrade_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
     text_upgrade_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
+    text_upgrade_0 = font_menu.render("Длительность: 10 секунд", False, (255, 0, 0))
+
+
+    text_cost_0 = font_menu.render("Стоимость", False, (255, 0, 0))
+
+    text_cost_1 = font_menu.render("10", False, BLUE)
+    text_cost_2 = font_menu.render("20", False, BLUE)
+    text_cost_3 = font_menu.render("35", False, BLUE)
+    text_cost_4 = font_menu.render("35", False, BLUE)
 
     pause = True
     while pause:
@@ -226,12 +236,20 @@ def menu_stop(screen, hero):
 
         screen.blit(text_upgrade_1, (80, 100))
         screen.blit(text_upgrade_2, (80, 300))
+        screen.blit(text_upgrade_0, (80, 350))
+
+        screen.blit(text_cost_0, (950, 60))
+
+        screen.blit(text_cost_1, (1000, 100))
+        screen.blit(text_cost_2, (1000, 200))
+        screen.blit(text_cost_3, (1000, 300))
+        screen.blit(text_cost_4, (1000, 400))
 
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                 if souls >= i[6]:
                     point = i[5]
-                break
+                    break
 
             else:
                 point = -1
