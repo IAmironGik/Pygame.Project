@@ -196,12 +196,12 @@ def menu_stop(screen, hero):
     screen.fill(BLACK)
 
     font_menu = pygame.font.Font(None, 50)
-    list_points = [(800, 600, 'Продолжить', RED, GRAY, 5),
-                   (250, 600, 'Выйти в меню', RED, GRAY, 4),
-                   (600, 100, '+хп', RED, GRAY, 0),
-                   (600, 200, '+урон', RED, GRAY, 1),
-                   (600, 300, 'тройной выстрел', RED, GRAY, 2),
-                   (600, 400, 'замедлить врагов', RED, GRAY, 3)]
+    list_points = [(800, 600, 'Продолжить', RED, GRAY, 5, 0),
+                   (250, 600, 'Выйти в меню', RED, GRAY, 4, 0),
+                   (600, 100, '+хп', RED, GRAY, 0, 10),
+                   (600, 200, '+урон', RED, GRAY, 1, 20),
+                   (600, 300, 'тройной выстрел', RED, GRAY, 2, 50),
+                   (600, 400, 'замедлить врагов', RED, GRAY, 3, 50)]
 
     point = -1
     heart = pygame.image.load('data/store_icons/сердце.png')
@@ -235,7 +235,8 @@ def menu_stop(screen, hero):
 
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
-                point = i[5]
+                if souls >= i[6]:
+                    point = i[5]
                 break
 
             else:
