@@ -4,7 +4,6 @@ import random
 import sys
 import pygame
 
-
 BLACK = "#000000"
 WHITE = "#FFFFFF"
 RED = "#FF0000"
@@ -325,6 +324,9 @@ def main_game(level, hero):
     direction_y = ""
 
     running = True
+    pygame.time.set_timer(pygame.USEREVENT, 1000)
+    minuts, seconds = 5, 59
+    text_time = f'{minuts}:{seconds}'
     while running:
         screen.fill(BLACK)
 
@@ -332,6 +334,12 @@ def main_game(level, hero):
             if event.type == pygame.QUIT:
                 sys.exit()
 
+            if event.type == pygame.USEREVENT:
+                seconds -= 1
+                if seconds == 0:
+                    minuts -= 1
+                    seconds = 59
+                text_time = f'{minuts}:{seconds}'
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if menu_stop(screen, main_hero):
@@ -388,7 +396,9 @@ def main_game(level, hero):
                     direction_y = -1
                 elif key_events[pygame.K_s]:
                     direction_y = 1
-
+        font_menu = pygame.font.Font(None, 50)
+        time = font_menu.render(text_time, False, (255, 0, 0))
+        screen.blit(time, (100, 100))
         main_hero.move(direction_x, direction_y)
 
         all_sprites.draw(screen)
