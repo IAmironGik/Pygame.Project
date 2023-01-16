@@ -14,6 +14,7 @@ GRAY = (150, 150, 150)
 soul_bar_font = pygame.font.match_font('arial')
 souls = 0
 tripled_attack = False
+enemy_slow = False
 hero_health = 0
 get_damage_cooldown = 1000
 previous_getting = 0
@@ -154,14 +155,19 @@ class Hero(pygame.sprite.Sprite):
 
 
 class SoulsDrop(pygame.sprite.Sprite):
-    def __init__(self, group, x, y):
+    def __init__(self, group, x, y, dpor_time):
         super().__init__(group)
         self.image = load_image("soul.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
+        self.drop_time = dpor_time
+
     def update(self, hero):
+        if pygame.time.get_ticks() - self.drop_time >= 15000:
+            self.kill()
+
         if self.rect.colliderect(hero.rect):
             global souls
 
@@ -267,6 +273,11 @@ def menu_stop(screen, hero):
 
                     tripled_attack = True
 
+                elif point == 3:
+                    global enemy_slow
+
+                    enemy_slow = True
+
                 elif point == 4:
                     pygame.mixer.music.unpause()
                     return True
@@ -291,7 +302,7 @@ def draw_health_bar(surf, max_health, health):
 
 
 def main_game(level, hero):
-    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack
+    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack, enemy_slow
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -301,7 +312,8 @@ def main_game(level, hero):
     bullet_list = []
 
     enemy_spawn_timer = pygame.USEREVENT + 1
-    pygame.time.set_timer(enemy_spawn_timer, 1000)
+    spawn_time = 3000
+    pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
     bulls_damage = 10
     attack_cooldown = 250
@@ -309,7 +321,7 @@ def main_game(level, hero):
     previous_getting = 0
 
     enemy_upgrade_timer = pygame.USEREVENT + 2
-    pygame.time.set_timer(enemy_upgrade_timer, 50000)
+    pygame.time.set_timer(enemy_upgrade_timer, 5000)
 
     souls = 0
     enemy_list = []
@@ -318,15 +330,21 @@ def main_game(level, hero):
 
     killed_enemy = 0
     enemy_health = 30
-    enemy_speed = 70
+    enemy_speed = 60
+    slow = 0
 
     direction_x = ""
     direction_y = ""
 
+    tripled_attack_timer = pygame.USEREVENT + 4
+    enemy_slower_timer = pygame.USEREVENT + 5
+
+    seconds_timer = pygame.USEREVENT + 3
+    pygame.time.set_timer(seconds_timer, 1000)
+    minuts, seconds = 6, 0
+    text_time = f'{minuts}:{seconds:02}'
+
     running = True
-    pygame.time.set_timer(pygame.USEREVENT, 1000)
-    minuts, seconds = 5, 59
-    text_time = f'{minuts}:{seconds}'
     while running:
         screen.fill(BLACK)
 
@@ -334,17 +352,31 @@ def main_game(level, hero):
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            if event.type == pygame.USEREVENT:
+            if event.type == tripled_attack_timer:
+                tripled_attack = False
+
+            if event.type == enemy_slower_timer:
+                enemy_slow = False
+                slow = 0
+
+            if event.type == seconds_timer:
+                minuts -= (seconds == 0)
                 seconds -= 1
-                if seconds == 0:
-                    minuts -= 1
-                    seconds = 59
+                seconds %= 60
                 text_time = f'{minuts}:{seconds}'
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if menu_stop(screen, main_hero):
                         running = False
                         break
+
+                    if tripled_attack:
+                        pygame.time.set_timer(tripled_attack_timer, 10000)
+
+                    if enemy_slow:
+                        slow = 40
+                        pygame.time.set_timer(enemy_slower_timer, 10000)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.time.get_ticks() - previous_attack > attack_cooldown:
@@ -361,7 +393,9 @@ def main_game(level, hero):
                     previous_attack = pygame.time.get_ticks()
 
             if event.type == enemy_upgrade_timer:
-                pygame.time.set_timer(enemy_spawn_timer, 500)
+                spawn_time -= 100
+                spawn_time = max(spawn_time, 250)
+                pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
             if event.type == enemy_spawn_timer:
                 side = random.randint(0, 3)
@@ -380,7 +414,7 @@ def main_game(level, hero):
                 else:
                     y = random.randint(10, HEIGHT - 10)
                     x = 10
-                enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed))
+                enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed - slow))
 
             key_events = pygame.key.get_pressed()
             if key_events:
@@ -396,9 +430,7 @@ def main_game(level, hero):
                     direction_y = -1
                 elif key_events[pygame.K_s]:
                     direction_y = 1
-        font_menu = pygame.font.Font(None, 50)
-        time = font_menu.render(text_time, False, (255, 0, 0))
-        screen.blit(time, (100, 100))
+
         main_hero.move(direction_x, direction_y)
 
         all_sprites.draw(screen)
@@ -420,14 +452,19 @@ def main_game(level, hero):
                     x, y = enemy.coords
                     x += random.randint(-20, 20)
                     y += random.randint(-20, 20)
-                    SoulsDrop(all_sprites, x, y)
+                    SoulsDrop(all_sprites, x, y, pygame.time.get_ticks())
 
                 enemy.kill()
                 enemy_list.remove(enemy)
                 killed_enemy += 1
+                if killed_enemy // 50:
+                    enemy_health += 10
 
         draw_health_bar(screen, hero_health, main_hero.health)
         draw_text(screen, str(souls), 18, WIDTH / 2, 30)
+        font_menu = pygame.font.Font(None, 50)
+        time = font_menu.render(text_time, False, (255, 0, 0))
+        screen.blit(time, (WIDTH // 2 - 30, HEIGHT - 50))
 
         pygame.display.flip()
         clock.tick(FPS)
