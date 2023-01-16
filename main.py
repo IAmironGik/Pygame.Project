@@ -237,7 +237,7 @@ def menu_stop(screen, hero):
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                 if souls >= i[6]:
                     point = i[5]
-                break
+                    break
 
             else:
                 point = -1
