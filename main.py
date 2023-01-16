@@ -7,7 +7,6 @@ import pygame
 BLACK = "#000000"
 WHITE = "#FFFFFF"
 RED = "#FF0000"
-BLUE = (0,250,250)
 WIDTH = 1200
 HEIGHT = 800
 FPS = 60
@@ -15,6 +14,7 @@ GRAY = (150, 150, 150)
 soul_bar_font = pygame.font.match_font('arial')
 souls = 0
 tripled_attack = False
+enemy_slow = False
 hero_health = 0
 get_damage_cooldown = 1000
 previous_getting = 0
@@ -48,7 +48,7 @@ class Bullet:
         self.color = WHITE
         self.coords = hero_pos
         self.size = 5
-        self.v = 150
+        self.v = 200
 
         x, y = self.coords
         distance_x = mouse_coords[0] - hero_pos[0]
@@ -155,14 +155,19 @@ class Hero(pygame.sprite.Sprite):
 
 
 class SoulsDrop(pygame.sprite.Sprite):
-    def __init__(self, group, x, y):
+    def __init__(self, group, x, y, dpor_time):
         super().__init__(group)
         self.image = load_image("soul.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
+        self.drop_time = dpor_time
+
     def update(self, hero):
+        if pygame.time.get_ticks() - self.drop_time >= 15000:
+            self.kill()
+
         if self.rect.colliderect(hero.rect):
             global souls
 
@@ -193,10 +198,10 @@ def menu_stop(screen, hero):
     font_menu = pygame.font.Font(None, 50)
     list_points = [(800, 600, 'Продолжить', RED, GRAY, 5, 0),
                    (250, 600, 'Выйти в меню', RED, GRAY, 4, 0),
-                   (600, 100, '+хп', BLUE, GRAY, 0, 10),
-                   (600, 200, '+урон', BLUE, GRAY, 1, 20),
-                   (600, 300, 'тройной выстрел', BLUE, GRAY, 2, 35),
-                   (600, 400, 'замедлить врагов', BLUE, GRAY, 3, 35)]
+                   (600, 100, '+хп', RED, GRAY, 0, 10),
+                   (600, 200, '+урон', RED, GRAY, 1, 20),
+                   (600, 300, 'тройной выстрел', RED, GRAY, 2, 35),
+                   (600, 400, 'замедлить врагов', RED, GRAY, 3, 35)]
 
     point = -1
     heart = pygame.image.load('data/store_icons/сердце.png')
@@ -213,18 +218,10 @@ def menu_stop(screen, hero):
 
     text_upgrade_1 = font_menu.render("Постоянные улучшения:", False, (255, 0, 0))
     text_upgrade_2 = font_menu.render("Временные улучшения:", False, (255, 0, 0))
-    text_upgrade_0 = font_menu.render("Длительность: 10 секунд", False, (255, 0, 0))
-
-
-    text_cost_0 = font_menu.render("Стоимость", False, (255, 0, 0))
-
-    text_cost_1 = font_menu.render("10", False, BLUE)
-    text_cost_2 = font_menu.render("20", False, BLUE)
-    text_cost_3 = font_menu.render("35", False, BLUE)
-    text_cost_4 = font_menu.render("35", False, BLUE)
 
     pause = True
     while pause:
+        global souls
         draw_text(screen, str(souls), 18, WIDTH / 2, 10)
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
         x, y = pygame.mouse.get_pos()
@@ -236,14 +233,6 @@ def menu_stop(screen, hero):
 
         screen.blit(text_upgrade_1, (80, 100))
         screen.blit(text_upgrade_2, (80, 300))
-        screen.blit(text_upgrade_0, (80, 350))
-
-        screen.blit(text_cost_0, (950, 60))
-
-        screen.blit(text_cost_1, (1000, 100))
-        screen.blit(text_cost_2, (1000, 200))
-        screen.blit(text_cost_3, (1000, 300))
-        screen.blit(text_cost_4, (1000, 400))
 
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
@@ -272,19 +261,28 @@ def menu_stop(screen, hero):
                 if point == 0:
                     global hero_health
 
+                    souls -= 10
                     hero.health += 1
                     if hero_health < hero.health:
                         hero_health += 1
 
                 elif point == 1:
+                    souls -= 20
                     global bulls_damage
 
                     bulls_damage += 5
 
                 elif point == 2:
+                    souls -= 35
                     global tripled_attack
 
                     tripled_attack = True
+
+                elif point == 3:
+                    souls -= 35
+                    global enemy_slow
+
+                    enemy_slow = True
 
                 elif point == 4:
                     pygame.mixer.music.unpause()
@@ -310,7 +308,7 @@ def draw_health_bar(surf, max_health, health):
 
 
 def main_game(level, hero):
-    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack
+    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack, enemy_slow
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -320,7 +318,8 @@ def main_game(level, hero):
     bullet_list = []
 
     enemy_spawn_timer = pygame.USEREVENT + 1
-    pygame.time.set_timer(enemy_spawn_timer, 1000)
+    spawn_time = 3000
+    pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
     bulls_damage = 10
     attack_cooldown = 250
@@ -328,7 +327,7 @@ def main_game(level, hero):
     previous_getting = 0
 
     enemy_upgrade_timer = pygame.USEREVENT + 2
-    pygame.time.set_timer(enemy_upgrade_timer, 50000)
+    pygame.time.set_timer(enemy_upgrade_timer, 5000)
 
     souls = 0
     enemy_list = []
@@ -337,15 +336,21 @@ def main_game(level, hero):
 
     killed_enemy = 0
     enemy_health = 30
-    enemy_speed = 70
+    enemy_speed = 60
+    slow = 0
 
     direction_x = ""
     direction_y = ""
 
+    tripled_attack_timer = pygame.USEREVENT + 4
+    enemy_slower_timer = pygame.USEREVENT + 5
+
+    seconds_timer = pygame.USEREVENT + 3
+    pygame.time.set_timer(seconds_timer, 1000)
+    minuts, seconds = 1, 0
+    text_time = f'{minuts}:{seconds:02}'
+
     running = True
-    pygame.time.set_timer(pygame.USEREVENT, 1000)
-    minuts, seconds = 5, 59
-    text_time = f'{minuts}:{seconds}'
     while running:
         screen.fill(BLACK)
 
@@ -353,17 +358,34 @@ def main_game(level, hero):
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            if event.type == pygame.USEREVENT:
+            if event.type == tripled_attack_timer:
+                tripled_attack = False
+
+            if event.type == enemy_slower_timer:
+                enemy_slow = False
+                slow = 0
+
+            if event.type == seconds_timer:
+                if not (minuts or seconds):
+                    running = False
+                    break
+                minuts -= (seconds == 0)
                 seconds -= 1
-                if seconds == 0:
-                    minuts -= 1
-                    seconds = 59
-                text_time = f'{minuts}:{seconds}'
+                seconds %= 60
+                text_time = f'{minuts}:{seconds:02}'
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if menu_stop(screen, main_hero):
                         running = False
                         break
+
+                    if tripled_attack:
+                        pygame.time.set_timer(tripled_attack_timer, 10000)
+
+                    if enemy_slow:
+                        slow = 40
+                        pygame.time.set_timer(enemy_slower_timer, 10000)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.time.get_ticks() - previous_attack > attack_cooldown:
@@ -380,7 +402,9 @@ def main_game(level, hero):
                     previous_attack = pygame.time.get_ticks()
 
             if event.type == enemy_upgrade_timer:
-                pygame.time.set_timer(enemy_spawn_timer, 500)
+                spawn_time -= 100
+                spawn_time = max(spawn_time, 250)
+                pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
             if event.type == enemy_spawn_timer:
                 side = random.randint(0, 3)
@@ -399,7 +423,7 @@ def main_game(level, hero):
                 else:
                     y = random.randint(10, HEIGHT - 10)
                     x = 10
-                enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed))
+                enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed - slow))
 
             key_events = pygame.key.get_pressed()
             if key_events:
@@ -415,9 +439,7 @@ def main_game(level, hero):
                     direction_y = -1
                 elif key_events[pygame.K_s]:
                     direction_y = 1
-        font_menu = pygame.font.Font(None, 50)
-        time = font_menu.render(text_time, False, (255, 0, 0))
-        screen.blit(time, (100, 100))
+
         main_hero.move(direction_x, direction_y)
 
         all_sprites.draw(screen)
@@ -439,14 +461,19 @@ def main_game(level, hero):
                     x, y = enemy.coords
                     x += random.randint(-20, 20)
                     y += random.randint(-20, 20)
-                    SoulsDrop(all_sprites, x, y)
+                    SoulsDrop(all_sprites, x, y, pygame.time.get_ticks())
 
                 enemy.kill()
                 enemy_list.remove(enemy)
                 killed_enemy += 1
+                if killed_enemy // 50:
+                    enemy_health += 10
 
         draw_health_bar(screen, hero_health, main_hero.health)
         draw_text(screen, str(souls), 18, WIDTH / 2, 30)
+        font_menu = pygame.font.Font(None, 50)
+        time = font_menu.render(text_time, False, (255, 0, 0))
+        screen.blit(time, (WIDTH // 2 - 30, HEIGHT - 50))
 
         pygame.display.flip()
         clock.tick(FPS)
