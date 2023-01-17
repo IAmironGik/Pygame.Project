@@ -365,7 +365,6 @@ def main_game(level, hero):
 
     seconds_timer = pygame.USEREVENT + 3
     pygame.time.set_timer(seconds_timer, 1000)
-    time_original = 60  # ДЛЯ КАЖДОГО УРОВНЯ СВОЕ В [СЕКУНДЫ]
     minuts, seconds = 1, 0
     text_time = f'{minuts}:{seconds:02}'
 
@@ -496,4 +495,3 @@ def main_game(level, hero):
 
         pygame.display.flip()
         clock.tick(FPS)
-    return (killed_enemy, (time_original - (minuts * 60 + seconds)))

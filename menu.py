@@ -6,6 +6,7 @@ from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 from main import main_game
 
+
 BACKGROUND_COLOR = "#0A0A0A"
 WHITE = "#FFFFFF"
 RED = "#FF0000"
@@ -43,55 +44,16 @@ class Menu:
                                      (500, 650, 'Назад', RED, GRAY, 1)]
 
         self.list_point_menu_level = [(150, 300, 'Уровень 1', RED, GRAY, 0),
-                                      (700, 300, 'Уровень 2', RED, GRAY, 1),
+                                      (850, 300, 'Уровень 2', RED, GRAY, 1),
                                       (150, 600, 'Уровень 3', RED, GRAY, 2),
-                                      (700, 600, 'Уровень 4', RED, GRAY, 3),
+                                      (850, 600, 'Уровень 4', RED, GRAY, 3),
                                       (500, 650, 'Назад', RED, GRAY, 4)]
-        self.list_point_menu_res = [(150, 600, 'Назад', RED, GRAY, 0)]
 
         self.font_menu = pygame.font.Font(None, 50)
 
         self.game_volume = 0.5
         self.menu_vol = 0.5
         self.music = 'data/game_music_1.mp3'
-
-    def res(self, count_enemy, time, level):
-        screen.fill(BACKGROUND_COLOR)
-        point = -1
-        run_res = True
-        score = (count_enemy * 50) + (time * 5)
-        text_res_1 = self.font_menu.render("КОНЕЦ ИГРЫ", False, (255, 0, 0))
-        text_res_2 = self.font_menu.render(f"КОЛИЧЕСТВО УБИТЫХ ВРАГОВ:{count_enemy}", False, (255, 0, 0))
-        text_res_3 = self.font_menu.render(f"Затраченное время:{time}", False, (255, 0, 0))
-        text_res_4 = self.font_menu.render(f"Всего очков:{score}", False, (255, 0, 0))
-        screen.blit(text_res_1, (500, 100))
-        screen.blit(text_res_2, (100, 200))
-        screen.blit(text_res_3, (100, 300))
-        screen.blit(text_res_4, (100, 400))
-        file = open("data/score.txt", 'a')
-        file.write(f'{level} {score}\n')
-        file.close()
-        while run_res:
-            pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
-            x, y = pygame.mouse.get_pos()
-            for i in self.list_point_menu_res:
-                if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
-                    point = i[5]
-                    break
-                else:
-                    point = -1
-
-            render(screen, self.font_menu, point, self.list_point_menu_res)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if point == 0:
-                        run_res = False
-                    screen.fill(BACKGROUND_COLOR)
-                    render(screen, self.font_menu, point, self.list_point_menu_res)
-
-            pygame.display.flip()
 
     def menu_volume(self):
 
@@ -244,39 +206,12 @@ class Menu:
     def menu_level(self, hero):
         screen.fill(BACKGROUND_COLOR)
         point = -1
+
         run_level = True
         while run_level:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
-            file = open('data/score.txt')
-            text = file.readlines()
-            file.close()
-            max_1 = 0
-            max_2 = 0
-            max_3 = 0
-            max_4 = 0
-            for i in text:
-                level, score = i.strip().split()
-                if level == '1':
-                    if int(score) > max_1:
-                        max_1 = int(score)
-                if level == '2':
-                    if int(score) > max_2:
-                        max_2 = int(score)
-                if level == '3':
-                    if int(score) > max_3:
-                        max_3 = int(score)
-                if level == '4':
-                    if int(score) > max_4:
-                        max_4 = int(score)
-            max_1 = self.font_menu.render(f'Лучший {max_1}', False, (255, 0, 0))
-            max_2 = self.font_menu.render(f'Лучший {max_2}', False, (255, 0, 0))
-            max_3 = self.font_menu.render(f'Лучший {max_3}', False, (255, 0, 0))
-            max_4 = self.font_menu.render(f'Лучший {max_4}', False, (255, 0, 0))
-            screen.blit(max_1, (350, 300))
-            screen.blit(max_2, (900, 300))
-            screen.blit(max_3, (350, 600))
-            screen.blit(max_4, (900, 600))
             x, y = pygame.mouse.get_pos()
+
             for i in self.list_point_menu_level:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                     point = i[5]
@@ -306,12 +241,13 @@ class Menu:
                         pygame.mixer.music.load(self.music)
                         pygame.mixer.music.set_volume(self.game_volume)
                         pygame.mixer.music.play(-1, 2)
-                        count_enemy, time = main_game(str(point + 1), hero)
+
+                        main_game(str(point + 1), hero)
 
                         pygame.mixer.music.load('data/menu_music.mp3')
                         pygame.mixer.music.set_volume(self.menu_vol)
                         pygame.mixer.music.play()
-                        self.res(count_enemy, time, str(point + 1))
+
                         screen.fill(BACKGROUND_COLOR)
 
             pygame.display.flip()
