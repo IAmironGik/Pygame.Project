@@ -26,6 +26,7 @@ bullet_list = []
 enemy_list = []
 
 
+# Функция загрузки картинок
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
@@ -44,6 +45,7 @@ def load_image(name, colorkey=None):
     return image
 
 
+# Класс пули
 class Bullet:
     def __init__(self, mouse_coords, hero_pos, damage, spread):
         self.is_died = False
@@ -57,12 +59,14 @@ class Bullet:
         distance_x = mouse_coords[0] - hero_pos[0]
         distance_y = mouse_coords[1] - hero_pos[1]
 
+        # Вычисление скорости через вектора
         angle = math.atan2(distance_y, distance_x) + spread
 
         self.vx = (self.v * math.cos(angle)) / FPS
         self.vy = (self.v * math.sin(angle)) / FPS
         self.rect = pygame.Rect(x, y, 2 * self.size, 2 * self.size)
 
+    # Движение пули
     def move(self):
         x, y = self.coords
         x += self.vx
@@ -75,10 +79,12 @@ class Bullet:
         self.rect = pygame.Rect(x, y, 2 * self.size, 2 * self.size)
 
 
+# Класс врага
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, group, coords, health, speed):
         super().__init__(group)
 
+        # Загружается картинка соответствующего враг
         self.image = load_image(f"enemy{level}.png")
         self.rect = self.image.get_rect()
         self.coords = coords
@@ -102,6 +108,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.is_died = True
 
     def move(self, player_coords):
+        # Вычисление скорости через теорему Пифагора
         x, y = self.coords
         xm, ym = player_coords
         k = ((x - xm) ** 2 + (y - ym) ** 2) ** 0.5
@@ -115,10 +122,12 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+# Класс героя
 class Hero(pygame.sprite.Sprite):
     def __init__(self, group, speed, image, health):
         super().__init__(group)
 
+        # Загружаем картинку выбранного героя
         self.image = load_image(image)
         self.rect = self.image.get_rect()
         self.coords = WIDTH // 2, HEIGHT // 2
@@ -144,6 +153,7 @@ class Hero(pygame.sprite.Sprite):
 
                     previous_getting = pygame.time.get_ticks()
 
+    # Вычисление скрости через теорему Пифагора
     def move(self, dx, dy):
         x, y = self.coords
         v = self.v
@@ -157,6 +167,7 @@ class Hero(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+# Класс дропа врагов
 class SoulsDrop(pygame.sprite.Sprite):
     def __init__(self, group, x, y, dpor_time):
         super().__init__(group)
@@ -168,9 +179,11 @@ class SoulsDrop(pygame.sprite.Sprite):
         self.drop_time = dpor_time
 
     def update(self, hero):
+        # Уничтожение экземпляров через 15 секунд после появления
         if pygame.time.get_ticks() - self.drop_time >= 15000:
             self.kill()
 
+        # Проверка на сталкивание с игроком, в случае столкновения игрок поднимает дроп
         if self.rect.colliderect(hero.rect):
             global souls
 
@@ -178,6 +191,7 @@ class SoulsDrop(pygame.sprite.Sprite):
             self.kill()
 
 
+# Счетчик дропа
 def draw_text(surf, text, size, x, y):
     text_surface = pygame.font.Font(soul_bar_font, size).render(text, True, WHITE)
     text_rect = text_surface.get_rect()
@@ -194,6 +208,7 @@ def render(screen, font, number, list_points):
             screen.blit(font.render(i[2], False, i[3]), (i[0], i[1]))
 
 
+# Меню которое появляется при нажатии на ESC
 def menu_stop(screen, hero):
     global tripled_attack, enemy_slow
     pygame.mixer.music.pause()
@@ -318,7 +333,10 @@ def menu_stop(screen, hero):
         pygame.display.flip()
 
 
+#  Отображение здоровья игрока
 def draw_health_bar(surf, max_health, health):
+
+    # Проверка на режим бессмертия
     if not god_mod:
         if health < 0:
             health = 0
@@ -329,6 +347,7 @@ def draw_health_bar(surf, max_health, health):
 
         pygame.draw.rect(surf, "#FF1010", fill_rect)
         pygame.draw.rect(surf, WHITE, outline_rect, 2)
+
     else:
         outline_rect = pygame.Rect(5, 5, max_health * 50, 20)
         fill_rect = pygame.Rect(5, 5, max_health * 50, 20)
@@ -337,6 +356,7 @@ def draw_health_bar(surf, max_health, health):
         pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 
+# Функция вызова главного экрана игры, передается выбранный герой
 def main_game(lvl, hero):
     global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack, \
         enemy_slow, god_mod, level
@@ -364,11 +384,14 @@ def main_game(lvl, hero):
 
     souls = 0
     enemy_list = []
+
+    # Настройка персонажа в соответствии с выбором игрока
     if hero == "Лэйхо":
         bulls_damage = 30
         attack_cooldown += 200
         hero_health = (6 - level) * 3
         main_hero = Hero(all_sprites, 90, f"{hero}.png", hero_health)
+
     else:
         bulls_damage = 5
         attack_cooldown = 100
@@ -394,6 +417,7 @@ def main_game(lvl, hero):
     minuts, seconds = level * 2, 0
     text_time = f'{minuts}:{seconds:02}'
 
+    # Основной цикл игры
     running = True
     while running:
         screen.fill(BLACK)
@@ -410,6 +434,7 @@ def main_game(lvl, hero):
                 enemy_slow = False
                 slow = 0
 
+            # Обновление таймера
             if event.type == seconds_timer:
                 if not (minuts or seconds):
                     running = False
@@ -420,6 +445,7 @@ def main_game(lvl, hero):
                 text_time = f'{minuts}:{seconds:02}'
 
             if event.type == pygame.KEYDOWN:
+                # Выход в меню
                 if event.key == pygame.K_ESCAPE:
                     if menu_stop(screen, main_hero):
                         running = False
@@ -432,7 +458,7 @@ def main_game(lvl, hero):
                         slow = 40
                         pygame.time.set_timer(enemy_slower_timer, 10000)
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if pygame.time.get_ticks() - previous_attack > attack_cooldown:
                     bullet_list.append(Bullet(event.pos, (main_hero.rect.x + main_hero.rect.w // 2,
                                                           main_hero.rect.y + main_hero.rect.h // 2),
@@ -446,14 +472,18 @@ def main_game(lvl, hero):
                                                   bulls_damage, -math.pi / 6))
                     previous_attack = pygame.time.get_ticks()
 
+            # Ускорение спавна врагов
             if event.type == enemy_upgrade_timer:
                 spawn_time -= 100
                 spawn_time = max(spawn_time, 250)
                 pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
+            # Спавн врагов
             if event.type == enemy_spawn_timer:
                 for i in range(1 if not god_mod else 3):
+                    # Рандомное место спавна врагов
                     side = random.randint(0, 3)
+
                     if side == 0:
                         x = random.randint(10, WIDTH - 10)
                         y = 10
@@ -474,6 +504,7 @@ def main_game(lvl, hero):
 
             key_events = pygame.key.get_pressed()
             if key_events:
+                # Управление движение игрока
                 if key_events[pygame.K_a] == key_events[pygame.K_d]:
                     direction_x = 0
 
@@ -497,6 +528,7 @@ def main_game(lvl, hero):
         all_sprites.draw(screen)
         all_sprites.update(main_hero)
 
+        # Проверка смерти персонажа
         if main_hero.is_died and not god_mod:
             if level == 4:
                 bulls_damage = 10000
@@ -540,4 +572,5 @@ def main_game(lvl, hero):
         pygame.display.flip()
         clock.tick(FPS)
 
+    # Возвращаем количество убитых врагов и прожитых секунд
     return killed_enemy, (time_original - (minuts * 60 + seconds))

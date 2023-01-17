@@ -1,9 +1,10 @@
 import sys
+
 import pygame
 import pygame_widgets
-
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
+
 from main import main_game
 
 BACKGROUND_COLOR = "#0A0A0A"
@@ -18,6 +19,8 @@ size = WIDTH, HEIGHT
 screen = pygame.display.set_mode(size)
 
 
+# функиця для отрисовки меню на экране
+
 def render(serf, font, number, list_menu):
     for i in list_menu:
         if number == i[5]:
@@ -28,6 +31,7 @@ def render(serf, font, number, list_menu):
 
 class Menu:
     def __init__(self):
+        # Каждое меню для отдельой сцены
         self.list_point_main_menu = [(500, 200, 'Играть', RED, GRAY, 0),
                                      (500, 300, 'Настройки', RED, GRAY, 1),
                                      (500, 400, 'Правила', RED, GRAY, 2),
@@ -55,6 +59,61 @@ class Menu:
         self.menu_vol = 0.5
         self.music = 'data/game_music_1.mp3'
 
+    # Функция отвечающая за сцену правил
+    def rules(self):
+        screen.fill(BACKGROUND_COLOR)
+        point = -1
+        run_rules = True
+        font_menu_rul = pygame.font.Font(None, 30)
+        text_res_1 = font_menu_rul.render("Игра жанра ‘Roguelike’, в темном фэнтезийном стиле.", False, (255, 0, 0))
+        text_res_2 = font_menu_rul.render(f"На выбор дается 2 персонажа", False, (255, 0, 0))
+        text_res_3 = font_menu_rul.render(f"Рифжих быстрее, но слабее. У него меньше хп", False, (255, 0, 0))
+        text_res_4 = font_menu_rul.render(f"У Лэйхо больший урон и хп, но он медленее", False, (255, 0, 0))
+        text_res_5 = font_menu_rul.render(f"Каждый последующий уровень сложнее предыдущего", False, (255, 0, 0))
+        text_res_6 = font_menu_rul.render(
+            f"Во время паузы, вы сможете покупать улучшения за подобранные вами эссуенции", False, (255, 0, 0))
+        text_res_7 = font_menu_rul.render(
+            f"Первая увеличивает хп, вторая увелеичвает наносимый урон,",
+            False, (255, 0, 0))
+        text_res_8 = font_menu_rul.render(
+            f" третья выстреливает тремя пулями, а четвертая замедляет врагов",
+            False, (255, 0, 0))
+        text_res_9 = font_menu_rul.render(
+            f"В конце вы видите результаты, зависящие от времени, и количество убийств",
+            False, (255, 0, 0))
+        screen.blit(text_res_1, (100, 100))
+        screen.blit(text_res_2, (100, 150))
+        screen.blit(text_res_3, (100, 200))
+        screen.blit(text_res_4, (100, 250))
+        screen.blit(text_res_5, (100, 300))
+        screen.blit(text_res_6, (100, 350))
+        screen.blit(text_res_7, (100, 400))
+        screen.blit(text_res_8, (100, 450))
+        screen.blit(text_res_9, (100, 500))
+        while run_rules:
+            pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
+            x, y = pygame.mouse.get_pos()
+            # Проверка на наведение курсора на кнопку
+            for i in self.list_point_menu_res:
+                if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
+                    point = i[5]
+                    break
+                else:
+                    point = -1
+
+            render(screen, self.font_menu, point, self.list_point_menu_res)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if point == 0:
+                        run_rules = False
+                    screen.fill(BACKGROUND_COLOR)
+                    render(screen, self.font_menu, point, self.list_point_menu_res)
+
+            pygame.display.flip()
+
+    # Функция отвечающая за сцену конечного окна результатов
     def res(self, count_enemy, time, level):
         screen.fill(BACKGROUND_COLOR)
         point = -1
@@ -93,11 +152,13 @@ class Menu:
 
             pygame.display.flip()
 
+    # Сцена для настроек
+
     def menu_volume(self):
 
         screen.fill(BACKGROUND_COLOR)
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
-
+        # Создаю слайдеры и текстбоксы
         slider_menu = Slider(screen, 500, 100, 500, 40, min=0, max=100, step=1,
                              initial=self.menu_vol * 100)
 
@@ -127,6 +188,9 @@ class Menu:
             screen.blit(text_choose, (100, 300))
 
             x, y = pygame.mouse.get_pos()
+
+            # Сохранение полученных громкостей
+
             self.menu_vol = slider_menu.getValue() / 100
             self.game_volume = slider_game.getValue() / 100
 
@@ -148,6 +212,9 @@ class Menu:
                     sys.exit()
 
                 if event.type == pygame.KEYDOWN:
+
+                    # Используется для передвижение по кнопкам с пмощью стрелок
+
                     if event.key == pygame.K_LEFT:
                         if point > 0:
                             point -= 1
@@ -187,6 +254,8 @@ class Menu:
 
         box_menu.hide()
         box_game.hide()
+
+    # Сцена выбора персонажа
 
     def menu_hero(self):
         screen.fill(BACKGROUND_COLOR)
@@ -241,6 +310,8 @@ class Menu:
 
             pygame.display.flip()
 
+    # Сцена для выбора уровня
+
     def menu_level(self, hero):
         screen.fill(BACKGROUND_COLOR)
         point = -1
@@ -254,7 +325,7 @@ class Menu:
             max_2 = 0
             max_3 = 0
             max_4 = 0
-
+            # Нахождение наилучшего результата для каждого уровня
             for i in text:
                 level, score = i.strip().split()
                 if level == '1':
@@ -319,6 +390,8 @@ class Menu:
 
             pygame.display.flip()
 
+    # Изначальное меню
+
     def menu(self):
         point = -1
         pygame.mixer.music.load('data/menu_music.mp3')
@@ -363,8 +436,8 @@ class Menu:
                     elif point == 3:
                         sys.exit()
 
-                    elif point == 4:
-                        pass
+                    elif point == 2:
+                        self.rules()
 
                     render(screen, self.font_menu, point, self.list_point_main_menu)
 
