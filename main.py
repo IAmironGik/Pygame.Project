@@ -16,6 +16,7 @@ soul_bar_font = pygame.font.match_font('arial')
 souls = 0
 tripled_attack = False
 enemy_slow = False
+god_mod = False
 hero_health = 0
 get_damage_cooldown = 1000
 previous_getting = 0
@@ -137,7 +138,7 @@ class Hero(pygame.sprite.Sprite):
             if collide_with:
                 if pygame.time.get_ticks() - previous_getting > get_damage_cooldown:
                     self.health -= 1
-                    if self.health <= 0:
+                    if self.health <= 0 and not god_mod:
                         self.is_died = True
 
                     previous_getting = pygame.time.get_ticks()
@@ -193,6 +194,7 @@ def render(screen, font, number, list_points):
 
 
 def menu_stop(screen, hero):
+    global tripled_attack, enemy_slow
     pygame.mixer.music.pause()
     screen.fill(BLACK)
 
@@ -230,6 +232,7 @@ def menu_stop(screen, hero):
 
     pause = True
     while pause:
+        screen.fill(BLACK)
         global souls
         draw_text(screen, str(souls), 18, WIDTH / 2, 10)
         pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
@@ -255,7 +258,10 @@ def menu_stop(screen, hero):
         for i in list_points:
             if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
                 if souls >= i[6]:
-                    point = i[5]
+                    if i[2] == 'тройной выстрел' and tripled_attack or i[2] == 'замедлить врагов' and enemy_slow:
+                        point = -1
+                    else:
+                        point = i[5]
                     break
 
             else:
@@ -292,13 +298,11 @@ def menu_stop(screen, hero):
 
                 elif point == 2:
                     souls -= 35
-                    global tripled_attack
 
                     tripled_attack = True
 
                 elif point == 3:
                     souls -= 35
-                    global enemy_slow
 
                     enemy_slow = True
 
@@ -314,19 +318,27 @@ def menu_stop(screen, hero):
 
 
 def draw_health_bar(surf, max_health, health):
-    if health < 0:
-        health = 0
+    if not god_mod:
+        if health < 0:
+            health = 0
 
-    fill = (health / max_health) * max_health * 50
-    outline_rect = pygame.Rect(5, 5, max_health * 50, 20)
-    fill_rect = pygame.Rect(5, 5, fill, 20)
+        fill = (health / max_health) * max_health * 50
+        outline_rect = pygame.Rect(5, 5, max_health * 50, 20)
+        fill_rect = pygame.Rect(5, 5, fill, 20)
 
-    pygame.draw.rect(surf, "#FF1010", fill_rect)
-    pygame.draw.rect(surf, WHITE, outline_rect, 2)
+        pygame.draw.rect(surf, "#FF1010", fill_rect)
+        pygame.draw.rect(surf, WHITE, outline_rect, 2)
+    else:
+        outline_rect = pygame.Rect(5, 5, max_health * 50, 20)
+        fill_rect = pygame.Rect(5, 5, max_health * 50, 20)
+
+        pygame.draw.rect(surf, "#FF5555", fill_rect)
+        pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 
 def main_game(level, hero):
-    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack, enemy_slow
+    global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack, \
+        enemy_slow, god_mod
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -336,11 +348,11 @@ def main_game(level, hero):
     bullet_list = []
 
     enemy_spawn_timer = pygame.USEREVENT + 1
-    spawn_time = 3000
+    spawn_time = 3000 - (level - 1) * 750
     pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
     bulls_damage = 10
-    attack_cooldown = 250
+    attack_cooldown = level * 250
     previous_attack = 0
     previous_getting = 0
 
@@ -349,8 +361,17 @@ def main_game(level, hero):
 
     souls = 0
     enemy_list = []
-    hero_health = 5
-    main_hero = Hero(all_sprites, 150, f"{hero}.png", hero_health)
+    if hero == "Лэйхо":
+        bulls_damage = 30
+        hero_health = (6 - level) * 3
+        main_hero = Hero(all_sprites, 90, f"{hero}.png", hero_health)
+    else:
+        bulls_damage = 5
+        attack_cooldown -= 100
+        hero_health = (6 - level) * 2
+        main_hero = Hero(all_sprites, 160, f"{hero}.png", hero_health)
+
+    background_image = load_image(f"level{level}.png")
 
     killed_enemy = 0
     enemy_health = 30
@@ -365,18 +386,20 @@ def main_game(level, hero):
 
     seconds_timer = pygame.USEREVENT + 3
     pygame.time.set_timer(seconds_timer, 1000)
-    minuts, seconds = 1, 0
+    time_original = 60 * level * 2
+    minuts, seconds = level * 2, 0
     text_time = f'{minuts}:{seconds:02}'
 
     running = True
     while running:
         screen.fill(BLACK)
+        screen.blit(background_image, (0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            if event.type == tripled_attack_timer:
+            if event.type == tripled_attack_timer and not god_mod:
                 tripled_attack = False
 
             if event.type == enemy_slower_timer:
@@ -419,29 +442,30 @@ def main_game(level, hero):
                                                   bulls_damage, -math.pi / 6))
                     previous_attack = pygame.time.get_ticks()
 
-            if event.type == enemy_upgrade_timer:
+            if event.type == enemy_upgrade_timer and not god_mod:
                 spawn_time -= 100
                 spawn_time = max(spawn_time, 250)
                 pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
             if event.type == enemy_spawn_timer:
-                side = random.randint(0, 3)
-                if side == 0:
-                    x = random.randint(10, WIDTH - 10)
-                    y = 10
+                for i in range(1 if not god_mod else 3):
+                    side = random.randint(0, 3)
+                    if side == 0:
+                        x = random.randint(10, WIDTH - 10)
+                        y = 10
 
-                elif side == 1:
-                    y = random.randint(10, HEIGHT - 10)
-                    x = 10
+                    elif side == 1:
+                        y = random.randint(10, HEIGHT - 10)
+                        x = 10
 
-                elif side == 2:
-                    x = random.randint(10, WIDTH - 10)
-                    y = HEIGHT - 10
+                    elif side == 2:
+                        x = random.randint(10, WIDTH - 10)
+                        y = HEIGHT - 10
 
-                else:
-                    y = random.randint(10, HEIGHT - 10)
-                    x = 10
-                enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed - slow))
+                    else:
+                        y = random.randint(10, HEIGHT - 10)
+                        x = 10
+                    enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed - slow))
 
             key_events = pygame.key.get_pressed()
             if key_events:
@@ -463,8 +487,17 @@ def main_game(level, hero):
         all_sprites.draw(screen)
         all_sprites.update(main_hero)
 
-        if main_hero.is_died:
-            break
+        if main_hero.is_died and not god_mod:
+            if level == 4:
+                bulls_damage = 10000
+                spawn_time = 250
+                attack_cooldown = 100
+                tripled_attack = True
+                god_mod = True
+                main_hero.v = 200
+                minuts -= 5
+            else:
+                break
 
         for index, bullet in enumerate(bullet_list):
             pygame.draw.circle(screen, bullet.color, bullet.coords, bullet.size)
@@ -495,3 +528,5 @@ def main_game(level, hero):
 
         pygame.display.flip()
         clock.tick(FPS)
+
+    return killed_enemy, (time_original - (minuts * 60 + seconds))
