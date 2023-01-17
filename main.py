@@ -14,6 +14,7 @@ FPS = 60
 GRAY = (150, 150, 150)
 soul_bar_font = pygame.font.match_font('arial')
 souls = 0
+level = 0
 tripled_attack = False
 enemy_slow = False
 god_mod = False
@@ -78,7 +79,7 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, group, coords, health, speed):
         super().__init__(group)
 
-        self.image = load_image("Рифжих.png")
+        self.image = load_image(f"enemy{level}.png")
         self.rect = self.image.get_rect()
         self.coords = coords
         self.rect.x = coords[0]
@@ -336,9 +337,11 @@ def draw_health_bar(surf, max_health, health):
         pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 
-def main_game(level, hero):
+def main_game(lvl, hero):
     global bullet_list, enemy_list, souls, hero_health, bulls_damage, previous_getting, tripled_attack, \
-        enemy_slow, god_mod
+        enemy_slow, god_mod, level
+
+    level = lvl
 
     size = WIDTH, HEIGHT
     screen = pygame.display.set_mode(size)
@@ -352,7 +355,7 @@ def main_game(level, hero):
     pygame.time.set_timer(enemy_spawn_timer, spawn_time)
 
     bulls_damage = 10
-    attack_cooldown = level * 250
+    attack_cooldown = level * 125
     previous_attack = 0
     previous_getting = 0
 
@@ -363,19 +366,20 @@ def main_game(level, hero):
     enemy_list = []
     if hero == "Лэйхо":
         bulls_damage = 30
+        attack_cooldown += 200
         hero_health = (6 - level) * 3
         main_hero = Hero(all_sprites, 90, f"{hero}.png", hero_health)
     else:
         bulls_damage = 5
-        attack_cooldown -= 100
+        attack_cooldown = 100
         hero_health = (6 - level) * 2
         main_hero = Hero(all_sprites, 160, f"{hero}.png", hero_health)
 
     background_image = load_image(f"level{level}.png")
 
     killed_enemy = 0
-    enemy_health = 30
-    enemy_speed = 60
+    enemy_health = 25 + level * 5
+    enemy_speed = 60 + level * 10
     slow = 0
 
     direction_x = ""
@@ -442,7 +446,7 @@ def main_game(level, hero):
                                                   bulls_damage, -math.pi / 6))
                     previous_attack = pygame.time.get_ticks()
 
-            if event.type == enemy_upgrade_timer and not god_mod:
+            if event.type == enemy_upgrade_timer:
                 spawn_time -= 100
                 spawn_time = max(spawn_time, 250)
                 pygame.time.set_timer(enemy_spawn_timer, spawn_time)
@@ -471,14 +475,19 @@ def main_game(level, hero):
             if key_events:
                 if key_events[pygame.K_a] == key_events[pygame.K_d]:
                     direction_x = 0
+
                 elif key_events[pygame.K_a]:
                     direction_x = -1
+
                 elif key_events[pygame.K_d]:
                     direction_x = 1
+
                 if key_events[pygame.K_w] == key_events[pygame.K_s]:
                     direction_y = 0
+
                 elif key_events[pygame.K_w]:
                     direction_y = -1
+
                 elif key_events[pygame.K_s]:
                     direction_y = 1
 
@@ -496,6 +505,7 @@ def main_game(level, hero):
                 god_mod = True
                 main_hero.v = 200
                 minuts -= 5
+
             else:
                 break
 
