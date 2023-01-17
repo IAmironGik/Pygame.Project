@@ -469,6 +469,7 @@ def main_game(lvl, hero):
                     else:
                         y = random.randint(10, HEIGHT - 10)
                         x = 10
+
                     enemy_list.append(Enemy(all_sprites, (x, y), enemy_health, enemy_speed - slow))
 
             key_events = pygame.key.get_pressed()
