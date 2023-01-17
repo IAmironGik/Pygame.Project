@@ -237,12 +237,15 @@ class Menu:
                     if point == 4:
                         run_level = False
 
+                    elif point == -1:
+                        pass
+
                     else:
                         pygame.mixer.music.load(self.music)
                         pygame.mixer.music.set_volume(self.game_volume)
                         pygame.mixer.music.play(-1, 2)
 
-                        main_game(str(point + 1), hero)
+                        main_game(point + 1, hero)
 
                         pygame.mixer.music.load('data/menu_music.mp3')
                         pygame.mixer.music.set_volume(self.menu_vol)
