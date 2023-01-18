@@ -71,27 +71,27 @@ class Menu:
         text_res_4 = font_menu_rul.render(f"У Лэйхо больший урон и хп, но он медленее", False, (255, 0, 0))
         text_res_5 = font_menu_rul.render(f"Каждый последующий уровень сложнее предыдущего", False, (255, 0, 0))
         text_res_6 = font_menu_rul.render(
-            f"Во время паузы, вы сможете покупать улучшения за подобранные вами эссуенции", False, (255, 0, 0))
+            f"Во время паузы, вы сможете покупать улучшения за подобранные вами эссенции", False, (255, 0, 0))
         text_res_7 = font_menu_rul.render(
             f"Первая увеличивает хп, вторая увелеичвает наносимый урон,",
             False, (255, 0, 0))
         text_res_8 = font_menu_rul.render(
-            f" третья выстреливает тремя пулями, а четвертая замедляет врагов",
+            f" Третья выстреливает тремя пулями, а четвертая замедляет врагов",
             False, (255, 0, 0))
         text_res_9 = font_menu_rul.render(
             f"В конце вы видите результаты, зависящие от времени, и количество убийств",
             False, (255, 0, 0))
-        screen.blit(text_res_1, (100, 100))
-        screen.blit(text_res_2, (100, 150))
-        screen.blit(text_res_3, (100, 200))
-        screen.blit(text_res_4, (100, 250))
-        screen.blit(text_res_5, (100, 300))
-        screen.blit(text_res_6, (100, 350))
-        screen.blit(text_res_7, (100, 400))
-        screen.blit(text_res_8, (100, 450))
-        screen.blit(text_res_9, (100, 500))
         while run_rules:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
+            screen.blit(text_res_1, (100, 100))
+            screen.blit(text_res_2, (100, 150))
+            screen.blit(text_res_3, (100, 200))
+            screen.blit(text_res_4, (100, 250))
+            screen.blit(text_res_5, (100, 300))
+            screen.blit(text_res_6, (100, 350))
+            screen.blit(text_res_7, (100, 400))
+            screen.blit(text_res_8, (100, 450))
+            screen.blit(text_res_9, (100, 500))
             x, y = pygame.mouse.get_pos()
             # Проверка на наведение курсора на кнопку
             for i in self.list_point_menu_res:
@@ -123,15 +123,15 @@ class Menu:
         text_res_2 = self.font_menu.render(f"КОЛИЧЕСТВО УБИТЫХ ВРАГОВ:{count_enemy}", False, (255, 0, 0))
         text_res_3 = self.font_menu.render(f"Затраченное время:{time}", False, (255, 0, 0))
         text_res_4 = self.font_menu.render(f"Всего очков:{score}", False, (255, 0, 0))
-        screen.blit(text_res_1, (500, 100))
-        screen.blit(text_res_2, (100, 200))
-        screen.blit(text_res_3, (100, 300))
-        screen.blit(text_res_4, (100, 400))
         file = open("data/score.txt", 'a')
         file.write(f'{level} {score}\n')
         file.close()
         while run_res:
             pygame.draw.rect(screen, RED, (70, 50, 1070, 700), 1)
+            screen.blit(text_res_1, (500, 100))
+            screen.blit(text_res_2, (100, 200))
+            screen.blit(text_res_3, (100, 300))
+            screen.blit(text_res_4, (100, 400))
             x, y = pygame.mouse.get_pos()
             for i in self.list_point_menu_res:
                 if i[0] < x < (i[0] + 150) and i[1] < y < (i[1] + 50):
@@ -377,16 +377,17 @@ class Menu:
                         run_level = False
 
                     else:
-                        pygame.mixer.music.load(self.music)
-                        pygame.mixer.music.set_volume(self.game_volume)
-                        pygame.mixer.music.play(-1, 2)
-                        count_enemy, time = main_game(point + 1, hero)
+                        if point != -1:
+                            pygame.mixer.music.load(self.music)
+                            pygame.mixer.music.set_volume(self.game_volume)
+                            pygame.mixer.music.play(-1, 2)
+                            count_enemy, time = main_game(point + 1, hero)
 
-                        pygame.mixer.music.load('data/menu_music.mp3')
-                        pygame.mixer.music.set_volume(self.menu_vol)
-                        pygame.mixer.music.play()
-                        self.res(count_enemy, time, str(point + 1))
-                        screen.fill(BACKGROUND_COLOR)
+                            pygame.mixer.music.load('data/menu_music.mp3')
+                            pygame.mixer.music.set_volume(self.menu_vol)
+                            pygame.mixer.music.play()
+                            self.res(count_enemy, time, str(point + 1))
+                            screen.fill(BACKGROUND_COLOR)
 
             pygame.display.flip()
 
